@@ -1,0 +1,42 @@
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: vereinssoftware_app
+        restart: unless-stopped
+        ports:
+            - "80:80"
+            - "443:443"
+            - "443:443/udp"
+        volumes:
+            - .:/app
+            - caddy_data:/data
+            - caddy_config:/config
+        environment:
+            SERVER_NAME: ":80"
+        depends_on:
+            postgres:
+                condition: service_healthy
+        tty: true
+
+    postgres:
+        image: postgres:17-alpine
+        container_name: vereinssoftware_postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: ${DB_DATABASE:-vereinssoftware}
+            POSTGRES_USER: ${DB_USERNAME:-vereinssoftware}
+            POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-vereinssoftware}"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+
+volumes:
+    caddy_data:
+    caddy_config:
+    postgres_data:

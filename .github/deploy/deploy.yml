@@ -1,0 +1,118 @@
+name: deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set image metadata
+        run: |
+          IMAGE_NAME=$(echo "ghcr.io/${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_NAME=${IMAGE_NAME}" >> "${GITHUB_ENV}"
+          echo "IMAGE_TAG=${GITHUB_SHA}" >> "${GITHUB_ENV}"
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Start SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+
+      - name: Add server to known_hosts
+        run: ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create deployment env file
+        env:
+          APP_NAME: ${{ vars.APP_NAME || 'Laravel' }}
+          APP_ENV: production
+          APP_KEY: ${{ secrets.APP_KEY }}
+          APP_DEBUG: "false"
+          APP_URL: ${{ vars.APP_URL }}
+          APP_PORT: ${{ vars.APP_PORT || '8000' }}
+          DB_DATABASE: ${{ secrets.DB_DATABASE }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD || 'null' }}
+          LOG_LEVEL: ${{ vars.LOG_LEVEL || 'info' }}
+          MAIL_MAILER: ${{ vars.MAIL_MAILER || 'log' }}
+          MAIL_HOST: ${{ vars.MAIL_HOST || '127.0.0.1' }}
+          MAIL_PORT: ${{ vars.MAIL_PORT || '2525' }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME || 'null' }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD || 'null' }}
+          MAIL_FROM_ADDRESS: ${{ vars.MAIL_FROM_ADDRESS || 'hello@example.com' }}
+          MAIL_FROM_NAME: ${{ vars.MAIL_FROM_NAME || vars.APP_NAME || 'Laravel' }}
+        run: |
+            {
+              printf 'APP_IMAGE=%q\n' "${IMAGE_NAME}:${IMAGE_TAG}"
+              printf 'APP_NAME=%q\n' "$APP_NAME"
+              printf 'APP_ENV=%q\n' "$APP_ENV"
+              printf 'APP_KEY=%q\n' "$APP_KEY"
+              printf 'APP_DEBUG=%q\n' "$APP_DEBUG"
+              printf 'APP_URL=%q\n' "$APP_URL"
+              printf 'APP_PORT=%q\n' "$APP_PORT"
+              printf 'DB_DATABASE=%q\n' "$DB_DATABASE"
+              printf 'DB_USERNAME=%q\n' "$DB_USERNAME"
+              printf 'DB_PASSWORD=%q\n' "$DB_PASSWORD"
+              printf 'REDIS_PASSWORD=%q\n' "$REDIS_PASSWORD"
+              printf 'LOG_LEVEL=%q\n' "$LOG_LEVEL"
+              printf 'MAIL_MAILER=%q\n' "$MAIL_MAILER"
+              printf 'MAIL_HOST=%q\n' "$MAIL_HOST"
+              printf 'MAIL_PORT=%q\n' "$MAIL_PORT"
+              printf 'MAIL_USERNAME=%q\n' "$MAIL_USERNAME"
+              printf 'MAIL_PASSWORD=%q\n' "$MAIL_PASSWORD"
+              printf 'MAIL_FROM_ADDRESS=%q\n' "$MAIL_FROM_ADDRESS"
+              printf 'MAIL_FROM_NAME=%q\n' "$MAIL_FROM_NAME"
+            } > .deploy.env
+
+      - name: Create Docker context
+        run: |
+          docker context rm production --force || true
+          docker context create production --docker "host=ssh://${{secrets.DEPLOY_USER}}@${{secrets.DEPLOY_HOST}}:${{secrets.DEPLOY_PORT}}"
+
+      - name: Deploy with Docker Compose
+        run: |
+          set -a
+          . ./.deploy.env
+          set +a
+          docker --context production compose -f docker-compose.deploy.yml pull
+          docker --context production compose -f docker-compose.deploy.yml up -d --remove-orphans
+
+      - name: Remove deployment env file
+        if: always()
+        run: rm -f .deploy.env
