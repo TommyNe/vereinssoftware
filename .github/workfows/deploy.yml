@@ -11,7 +11,7 @@ permissions:
   packages: write
 
 concurrency:
-  group: deploy-production
+  group: workfows-production
   cancel-in-progress: false
 
 jobs:
@@ -115,4 +115,4 @@ jobs:
 
       - name: Remove deployment env file
         if: always()
-        run: rm -f .deploy.env
+        run: rm -f .workfows.env
