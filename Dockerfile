@@ -1,35 +1,83 @@
-FROM dunglas/frankenphp:1-php8.5-alpine
+# =========================================================
+# Stage 1: Composer / PHP Dependencies
+# =========================================================
 
-RUN install-php-extensions \
-    pdo_pgsql \
-    exif \
-    pcntl \
-    bcmath \
-    gd
-
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-RUN apk add --no-cache nodejs npm
+FROM composer:latest AS php-deps
 
 WORKDIR /app
 
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-scripts
+
+RUN composer install \
+    --optimize-autoloader \
+    --no-scripts
+
+
+# =========================================================
+# Stage 2: Frontend Build
+# =========================================================
+
+FROM node:22-alpine AS frontend
+
+WORKDIR /app
 
 COPY package.json package-lock.json ./
+
 RUN npm ci
 
 COPY . .
 
 RUN npm run build
 
-RUN cp -n .env.example .env 2>/dev/null || true \
-    && php artisan key:generate --force
 
-RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache \
-    && chmod -R 775 /app/storage /app/bootstrap/cache
+# =========================================================
+# Stage 3: Production Image
+# =========================================================
+
+FROM dunglas/frankenphp:1-php8.5-alpine AS production
+
+ARG USER_UID=1000
+ARG USER_GID=1000
+
+# Gruppe und User mit Host-UID/GID anlegen
+RUN addgroup -g ${USER_GID} web && \
+    adduser -u ${USER_UID} -G web -s /bin/sh -D web
+
+RUN install-php-extensions \
+    pdo_pgsql \
+    redis \
+    exif \
+    pcntl \
+    bcmath \
+    gd
+
+WORKDIR /app
+
+# Application source
+COPY . .
+
+# PHP dependencies
+COPY --from=php-deps /app/vendor ./vendor
+
+# Compiled Vite assets
+COPY --from=frontend /app/public/build ./public/build
+
+# Laravel runtime directories
+RUN mkdir -p \
+        storage/framework/cache \
+        storage/framework/sessions \
+        storage/framework/views \
+        storage/logs \
+        /data/caddy \
+        /config/caddy \
+        bootstrap/cache \
+    && chown -R web:web storage bootstrap/cache /data/caddy /config/caddy \
+    && chmod -R 775 storage bootstrap/cache
 
 COPY .deploy/entrypoint.sh /entrypoint.sh
+
 RUN chmod +x /entrypoint.sh
+
+USER web
 
 ENTRYPOINT ["/entrypoint.sh"]

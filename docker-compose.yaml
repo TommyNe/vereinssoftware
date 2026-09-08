@@ -2,6 +2,9 @@ services:
     app:
         build:
             context: .
+            args:
+                UID: ${UID:-1000}
+                GID: ${GID:-1000}
             dockerfile: Dockerfile
         container_name: vereinssoftware_app
         restart: unless-stopped
@@ -11,8 +14,6 @@ services:
             - "443:443/udp"
         volumes:
             - .:/app
-            - caddy_data:/data
-            - caddy_config:/config
         environment:
             SERVER_NAME: ":80"
         depends_on:
@@ -24,6 +25,8 @@ services:
         image: postgres:17-alpine
         container_name: vereinssoftware_postgres
         restart: unless-stopped
+        ports:
+            - "5432:5432"
         environment:
             POSTGRES_DB: ${DB_DATABASE:-vereinssoftware}
             POSTGRES_USER: ${DB_USERNAME:-vereinssoftware}
@@ -36,7 +39,21 @@ services:
             timeout: 5s
             retries: 5
 
+    valkey:
+        image: valkey/valkey:8-alpine
+        restart: unless-stopped
+        command: >
+            valkey-server
+            --appendonly yes
+            --appendfsync everysec
+        volumes:
+            - valkey_data:/data
+        networks:
+            - app
+
 volumes:
-    caddy_data:
-    caddy_config:
+    valkey_data:
     postgres_data:
+
+networks:
+    app:
