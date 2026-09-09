@@ -1,9 +1,13 @@
 <?php
 
+use App\Application\Club\CurrentClub;
+use App\Domain\Club\Models\Club;
 use App\Domain\Membership\Aggregates\MemberAggregate;
 use App\Domain\Membership\Events\MemberRegistered;
 use App\Domain\Membership\Exceptions\MemberAlreadyRegistered;
+use App\Domain\Membership\Models\Member;
 use App\Domain\Membership\ValueObjects\MemberNumber;
+use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
 
@@ -54,3 +58,34 @@ it('cannot register the same aggregate twice', function (): void {
         )
     )->toThrow(MemberAlreadyRegistered::class);
 });
+
+
+it(
+    'does not allow access to members of another club',
+    function (): void {
+        $clubA = Club::factory()->create();
+        $clubB = Club::factory()->create();
+
+        $user = User::factory()->create();
+
+        $user->clubs()->attach($clubA);
+
+        session([
+            'current_club_id' => $clubA->id,
+        ]);
+
+        app(CurrentClub::class)->set($clubA);
+
+        setPermissionsTeamId($clubA->id);
+
+        $member = Member::factory()->create([
+            'club_id' => $clubB->id,
+        ]);
+
+        expect(
+            Member::query()
+                ->forCurrentClub()
+                ->find($member->id)
+        )->toBeNull();
+    }
+);

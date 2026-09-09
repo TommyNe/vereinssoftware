@@ -2,7 +2,9 @@
 
 namespace App\Domain\Membership\Models;
 
+use App\Application\Club\CurrentClub;
 use App\Domain\Club\Models\Club;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\EventSourcing\Projections\Projection;
 
@@ -19,6 +21,17 @@ final class Member extends Projection
             'joined_at' => 'date',
             'left_at' => 'date',
         ];
+    }
+
+    public function scopeForCurrentClub(
+        Builder $query
+    ): Builder {
+        $currentClub = app(CurrentClub::class);
+
+        return $query->where(
+            'club_id',
+            $currentClub->id(),
+        );
     }
 
     public function club(): BelongsTo

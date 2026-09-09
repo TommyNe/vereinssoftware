@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Application\Club\CurrentClub;
 use App\Application\Membership\Commands\RegisterMember;
 use App\Application\Membership\Handlers\RegisterMemberHandler;
 use App\Domain\Membership\Models\Member;
@@ -16,13 +17,14 @@ final class MemberController extends Controller
     public function store(
         RegisterMemberRequest $request,
         RegisterMemberHandler $handler,
+        CurrentClub $currentClub
     ): JsonResponse {
         $memberId = (string) Str::uuid();
 
         $handler->handle(
             new RegisterMember(
                 memberId: $memberId,
-                clubId: $request->string('club_id')->toString(),
+                clubId: $currentClub->id(),
                 memberNumber: $request
                     ->string('member_number')
                     ->toString(),

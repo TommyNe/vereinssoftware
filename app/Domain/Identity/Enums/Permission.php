@@ -1,0 +1,18 @@
+<?php
+
+namespace App\Domain\Identity\Enums;
+
+enum Permission: string
+{
+   case MembersView = 'members.view';
+   case MembersCreate = 'members.create';
+   case MembersUpdate = 'members.update';
+   case MembersDelete = 'members.delete';
+
+   case MembersPersonalDataView = 'members.personal-data.view';
+   case MembersDocumentsView = 'members.documents.view';
+   case MembersExport = 'members.export';
+   case ClubUsersView = 'club.users.view';
+   case ClubUsersManage = 'club.users.manage';
+   case ClubSettingsManage = 'club.settings.manage';
+}

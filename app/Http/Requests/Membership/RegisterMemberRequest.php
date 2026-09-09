@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Membership;
 
+use App\Domain\Membership\Models\Member;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -9,19 +10,15 @@ final class RegisterMemberRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Berechtigungen bauen wir im nächsten Schritt sauber ein.
-        return true;
+        return $this->user()?->can(
+            'create',
+            Member::class
+        ) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'club_id' => [
-                'required',
-                'uuid',
-                Rule::exists('clubs', 'id'),
-            ],
-
             'member_number' => [
                 'required',
                 'string',
