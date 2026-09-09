@@ -1,6 +1,7 @@
 <?php
 
 namespace Database\Seeders;
+
 use App\Domain\Identity\Enums\Permission as PermissionEnum;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;

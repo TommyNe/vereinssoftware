@@ -14,6 +14,5 @@ final readonly class RegisterMember
         public string $lastName,
         public ?CarbonImmutable $birthDate,
         public CarbonImmutable $joinedAt,
-    ) {
-    }
+    ) {}
 }

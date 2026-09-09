@@ -14,14 +14,13 @@ class MemberPolicy
      */
     public function __construct(
         private CurrentClub $currentClub,
-    ){}
+    ) {}
 
     public function view(
         User $user,
         Member $member,
-    ): bool
-    {
-        if(
+    ): bool {
+        if (
             $member->club_id !== $this->currentClub->id()
         ) {
             return false;
@@ -53,5 +52,4 @@ class MemberPolicy
             Permission::MembersCreate->value
         );
     }
-
 }

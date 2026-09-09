@@ -22,7 +22,7 @@ class Club extends Model
         'phone',
         'street',
         'postal_code',
-        'city'
+        'city',
     ];
 
     public function members(): HasMany

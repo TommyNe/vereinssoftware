@@ -33,7 +33,7 @@ class ClubContextController extends Controller
             'data' => [
                 'club_id' => $club->id,
                 'name' => $club->name,
-            ]
+            ],
         ]);
     }
 }

@@ -11,28 +11,27 @@ class CreateDefaultClubRoles
 {
     public function handle(Club $club): void
     {
-       setPermissionsTeamId($club->id);
+        setPermissionsTeamId($club->id);
 
-       $administrator = Role::findOrCreate(
-           RoleEnum::Administrator->value,
-              'web',
-       );
+        $administrator = Role::findOrCreate(
+            RoleEnum::Administrator->value,
+            'web',
+        );
 
-       $administrator->syncPermissions(
-           array_map(
-               static fn (Permission $permission) =>
-               $permission->value,
-               Permission::cases()
-           )
-       );
+        $administrator->syncPermissions(
+            array_map(
+                static fn (Permission $permission) => $permission->value,
+                Permission::cases()
+            )
+        );
 
-       $member = Role::findOrCreate(
-           RoleEnum::Member->value,
-              'web',
-       );
+        $member = Role::findOrCreate(
+            RoleEnum::Member->value,
+            'web',
+        );
 
-       $member->syncPermissions([
-           Permission::MembersView->value,
-       ]);
+        $member->syncPermissions([
+            Permission::MembersView->value,
+        ]);
     }
 }

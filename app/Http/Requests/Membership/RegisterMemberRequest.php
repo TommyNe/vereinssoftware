@@ -4,7 +4,6 @@ namespace App\Http\Requests\Membership;
 
 use App\Domain\Membership\Models\Member;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 final class RegisterMemberRequest extends FormRequest
 {

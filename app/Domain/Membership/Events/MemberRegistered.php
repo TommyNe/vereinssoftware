@@ -13,6 +13,5 @@ class MemberRegistered extends ShouldBeStored
         public readonly string $lastName,
         public readonly ?string $birthDate,
         public readonly string $joinedAt,
-    ) {
-    }
+    ) {}
 }

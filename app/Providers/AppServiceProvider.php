@@ -14,7 +14,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(
             CurrentClub::class,
-            fn() => new CurrentClub(),
+            fn () => new CurrentClub,
         );
     }
 

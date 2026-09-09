@@ -26,8 +26,7 @@ it('registers a member', function (): void {
             joinedAt: CarbonImmutable::parse('2026-09-08'),
         )
         ->assertRecorded(
-            fn (MemberRegistered $event): bool =>
-                $event->memberNumber === '10001'
+            fn (MemberRegistered $event): bool => $event->memberNumber === '10001'
                 && $event->firstName === 'Max'
                 && $event->lastName === 'Mustermann'
         );
@@ -58,7 +57,6 @@ it('cannot register the same aggregate twice', function (): void {
         )
     )->toThrow(MemberAlreadyRegistered::class);
 });
-
 
 it(
     'does not allow access to members of another club',
