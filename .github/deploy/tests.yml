@@ -30,8 +30,8 @@ jobs:
       fail-fast: false
       matrix:
         php-version:
-          - '8.4'
-          - '8.5'
+          - "8.4"
+          - "8.5"
 
     name: PHP ${{ matrix.php-version }}
 
@@ -49,7 +49,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
           cache: npm
 
       - name: Get Composer cache directory

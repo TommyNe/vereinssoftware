@@ -81,11 +81,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"
-        ]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -110,14 +106,7 @@ services:
       - valkey_data:/data
 
     healthcheck:
-      test:
-        [
-          "CMD",
-          "valkey-cli",
-          "-a",
-          "${REDIS_PASSWORD}",
-          "ping"
-        ]
+      test: ["CMD", "valkey-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 5s
       timeout: 5s
       retries: 10
