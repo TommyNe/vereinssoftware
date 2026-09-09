@@ -1,0 +1,334 @@
+name: CI / CD
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+      - master
+      - workos
+
+  pull_request:
+    branches:
+      - develop
+      - main
+      - master
+      - workos
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  # ---------------------------------------------------------
+  # 1. LINTER
+  # ---------------------------------------------------------
+
+  lint:
+    name: Linter
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install PHP dependencies
+        run: |
+          composer install \
+            --no-interaction \
+            --prefer-dist \
+            --no-progress
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Check PHP formatting
+        run: ./vendor/bin/pint --test
+
+      - name: Check frontend formatting
+        run: npm run format:check
+
+      - name: Lint frontend
+        run: npm run lint
+
+
+  # ---------------------------------------------------------
+  # 2. TESTS
+  # ---------------------------------------------------------
+
+  tests:
+    name: Tests PHP ${{ matrix.php-version }}
+
+    needs:
+      - lint
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        php-version:
+          - '8.4'
+          - '8.5'
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+
+        env:
+          POSTGRES_DB: testing
+          POSTGRES_USER: testing
+          POSTGRES_PASSWORD: testing
+
+        ports:
+          - 5432:5432
+
+        options: >-
+          --health-cmd "pg_isready -U testing -d testing"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          tools: composer:v2
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install PHP dependencies
+        run: |
+          composer install \
+            --no-interaction \
+            --prefer-dist \
+            --no-progress
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Create environment file
+        run: cp .env.example .env
+
+      - name: Generate application key
+        run: php artisan key:generate
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Run tests
+        env:
+          APP_ENV: testing
+
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: testing
+          DB_USERNAME: testing
+          DB_PASSWORD: testing
+
+        run: ./vendor/bin/pest
+
+
+  # ---------------------------------------------------------
+  # 3. DEPLOY
+  # ---------------------------------------------------------
+
+  deploy:
+    name: Deploy Production
+
+    needs:
+      - tests
+
+    # Niemals Pull Requests deployen.
+    # Nur Push auf main.
+    if: >
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main'
+
+    runs-on: ubuntu-latest
+
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set image metadata
+        run: |
+          IMAGE_NAME=$(echo "ghcr.io/${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
+
+          echo "IMAGE_NAME=${IMAGE_NAME}" >> "${GITHUB_ENV}"
+          echo "IMAGE_TAG=${GITHUB_SHA}" >> "${GITHUB_ENV}"
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Start SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+
+      - name: Add server to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+
+          ssh-keyscan \
+            -p "${{ secrets.DEPLOY_PORT }}" \
+            -H "${{ secrets.DEPLOY_HOST }}" \
+            >> ~/.ssh/known_hosts
+
+      - name: Create deployment environment
+        env:
+          APP_NAME: ${{ vars.APP_NAME }}
+          APP_DOMAIN: ${{ vars.APP_DOMAIN }}
+
+          APP_KEY: ${{ secrets.APP_KEY }}
+
+          DB_DATABASE: ${{ secrets.DB_DATABASE }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+
+          LOG_LEVEL: ${{ vars.LOG_LEVEL || 'info' }}
+
+          MAIL_MAILER: ${{ vars.MAIL_MAILER || 'log' }}
+          MAIL_HOST: ${{ vars.MAIL_HOST || '127.0.0.1' }}
+          MAIL_PORT: ${{ vars.MAIL_PORT || '2525' }}
+
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+
+          MAIL_FROM_ADDRESS: ${{ vars.MAIL_FROM_ADDRESS }}
+          MAIL_FROM_NAME: ${{ vars.MAIL_FROM_NAME }}
+
+        run: |
+          {
+            printf 'APP_IMAGE=%q\n' "${IMAGE_NAME}:${IMAGE_TAG}"
+
+            printf 'APP_NAME=%q\n' "$APP_NAME"
+            printf 'APP_DOMAIN=%q\n' "$APP_DOMAIN"
+
+            printf 'APP_KEY=%q\n' "$APP_KEY"
+
+            printf 'DB_DATABASE=%q\n' "$DB_DATABASE"
+            printf 'DB_USERNAME=%q\n' "$DB_USERNAME"
+            printf 'DB_PASSWORD=%q\n' "$DB_PASSWORD"
+
+            printf 'REDIS_PASSWORD=%q\n' "$REDIS_PASSWORD"
+
+            printf 'LOG_LEVEL=%q\n' "$LOG_LEVEL"
+
+            printf 'MAIL_MAILER=%q\n' "$MAIL_MAILER"
+            printf 'MAIL_HOST=%q\n' "$MAIL_HOST"
+            printf 'MAIL_PORT=%q\n' "$MAIL_PORT"
+
+            printf 'MAIL_USERNAME=%q\n' "$MAIL_USERNAME"
+            printf 'MAIL_PASSWORD=%q\n' "$MAIL_PASSWORD"
+
+            printf 'MAIL_FROM_ADDRESS=%q\n' "$MAIL_FROM_ADDRESS"
+            printf 'MAIL_FROM_NAME=%q\n' "$MAIL_FROM_NAME"
+          } > .deploy.env
+
+      - name: Create Docker context
+        run: |
+          docker context rm production --force || true
+
+          docker context create production \
+            --docker \
+            "host=ssh://${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PORT }}"
+
+      - name: Test Docker connection
+        run: docker --context production info
+
+      - name: Deploy application
+        run: |
+          set -a
+          source ./.deploy.env
+          set +a
+
+          docker --context production compose \
+            -f docker-compose.deploy.yml \
+            pull
+
+          docker --context production compose \
+            -f docker-compose.deploy.yml \
+            up -d --remove-orphans
+
+      - name: Run migrations
+        run: |
+          set -a
+          source ./.deploy.env
+          set +a
+
+          docker --context production compose \
+            -f docker-compose.deploy.yml \
+            exec -T app php artisan migrate --force
+
+      - name: Optimize Laravel
+        run: |
+          set -a
+          source ./.deploy.env
+          set +a
+
+          docker --context production compose \
+            -f docker-compose.deploy.yml \
+            exec -T app php artisan optimize
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f .deploy.env
+          docker context rm production --force || true
