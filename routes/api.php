@@ -17,4 +17,12 @@ Route::middleware([
         '/club-context',
         [ClubContextController::class, 'switch']
     );
+
+    Route::patch(
+        '/members/{member}/address',
+        [
+            MemberController::class,
+            'changeAddress',
+        ]
+    );
 });

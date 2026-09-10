@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Application\Club\CurrentClub;
+use App\Application\Membership\Commands\ChangeMemberAddress;
 use App\Application\Membership\Commands\RegisterMember;
+use App\Application\Membership\Handlers\ChangeMemberAddressHandler;
 use App\Application\Membership\Handlers\RegisterMemberHandler;
 use App\Domain\Membership\Models\Member;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Membership\ChangeMemberAddressRequest;
 use App\Http\Requests\Membership\RegisterMemberRequest;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
@@ -54,5 +57,49 @@ final class MemberController extends Controller
             ],
             status: 201,
         );
+    }
+
+    public function changeAddress(
+        ChangeMemberAddressRequest $request,
+        string $member,
+        ChangeMemberAddressHandler $handler,
+    ): JsonResponse {
+        $readModel = Member::query()
+            ->forCurrentClub()
+            ->findOrFail($member);
+
+        $handler->handle(
+            new ChangeMemberAddress(
+                memberId: $readModel->id,
+                street: $request
+                    ->string('street')
+                    ->trim()
+                    ->toString(),
+                houseNumber: $request
+                    ->string('house_number')
+                    ->trim()
+                    ->toString(),
+                postalCode: $request
+                    ->string('postal_code')
+                    ->trim()
+                    ->toString(),
+                city: $request
+                    ->string('city')
+                    ->trim()
+                    ->toString(),
+                countryCode: strtoupper(
+                    $request
+                        ->string('country_code')
+                        ->trim()
+                        ->toString()
+                ),
+            )
+        );
+
+        $readModel->refresh();
+
+        return response()->json([
+            'data' => $readModel,
+        ]);
     }
 }
