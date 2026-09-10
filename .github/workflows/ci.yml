@@ -306,17 +306,23 @@ jobs:
 
       - name: Run migrations
         run: |
-          ssh \
-            -p "${{ secrets.DEPLOY_PORT }}" \
-            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-            'docker exec vereinssoftware_app php artisan migrate --force'
+          set -a
+          source ./.deploy.env
+          set +a
+
+          docker --context production compose \
+            -f docker-compose.deploy.yml \
+            exec -T app php artisan migrate --force
 
       - name: Optimize Laravel
         run: |
-          ssh \
-            -p "${{ secrets.DEPLOY_PORT }}" \
-            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-            'docker exec vereinssoftware_app php artisan optimize'
+          set -a
+          source ./.deploy.env
+          set +a
+
+          docker --context production compose \
+            -f docker-compose.deploy.yml \
+            exec -T app php artisan optimize
 
       - name: Cleanup
         if: always()
