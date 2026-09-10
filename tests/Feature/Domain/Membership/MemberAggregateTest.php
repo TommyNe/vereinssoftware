@@ -29,9 +29,11 @@ it('registers a member', function (): void {
             joinedAt: CarbonImmutable::parse('2026-09-08'),
         )
         ->assertRecorded(
-            fn (MemberRegistered $event): bool => $event->memberNumber === '10001'
-                && $event->firstName === 'Max'
-                && $event->lastName === 'Mustermann'
+            function (MemberRegistered $event): void {
+                expect($event->memberNumber)->toBe('10001')
+                    ->and($event->firstName)->toBe('Max')
+                    ->and($event->lastName)->toBe('Mustermann');
+            }
         );
 });
 
@@ -80,7 +82,7 @@ it(
         setPermissionsTeamId($clubA->id);
 
         $member = new Member([
-            'id' => (string) Str::uuid(),
+            'uuid' => (string) Str::uuid(),
             'club_id' => $clubB->id,
             'member_number' => '20001',
             'first_name' => 'Erika',
@@ -92,7 +94,7 @@ it(
         expect(
             Member::query()
                 ->forCurrentClub()
-                ->find($member->id)
+                ->find($member->uuid)
         )->toBeNull();
     }
 );
