@@ -79,7 +79,7 @@ it(
 
         setPermissionsTeamId($clubA->id);
 
-        $member = Member::query()->create([
+        $member = new Member([
             'id' => (string) Str::uuid(),
             'club_id' => $clubB->id,
             'member_number' => '20001',
@@ -87,6 +87,7 @@ it(
             'last_name' => 'Mustermann',
             'joined_at' => CarbonImmutable::parse('2026-09-08'),
         ]);
+        $member->writeable()->save();
 
         expect(
             Member::query()
