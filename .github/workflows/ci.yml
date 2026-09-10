@@ -178,23 +178,9 @@ jobs:
     environment:
       name: production
 
-    env:
-      APP_NAME: ${{ vars.APP_NAME }}
-      APP_DOMAIN: ${{ vars.APP_DOMAIN }}
-      LOG_LEVEL: ${{ vars.LOG_LEVEL || 'info' }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-
-      - name: Validate production variables
-        run: |
-          if [ -z "${APP_DOMAIN}" ]; then
-            echo "::error::APP_DOMAIN is empty"
-            exit 1
-          fi
-          
-          echo "APP_DOMAIN=${APP_DOMAIN}"
 
       - name: Set image metadata
         run: |
