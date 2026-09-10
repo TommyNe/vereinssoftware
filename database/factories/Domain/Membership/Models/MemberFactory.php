@@ -4,6 +4,7 @@ namespace Database\Factories\Domain\Membership\Models;
 
 use App\Domain\Membership\Models\Member;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 /**
@@ -27,11 +28,11 @@ class MemberFactory extends Factory
         ];
     }
 
-    public function create($attributes = [], ?\Illuminate\Database\Eloquent\Model $parent = null)
+    public function create($attributes = [], ?Model $parent = null)
     {
         $records = $this->make($attributes, $parent);
 
-        if ($records instanceof \Illuminate\Database\Eloquent\Model) {
+        if ($records instanceof Model) {
             $this->store(collect([$records]));
             $records->refresh();
 
@@ -56,5 +57,3 @@ class MemberFactory extends Factory
         });
     }
 }
-
-
