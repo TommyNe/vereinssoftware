@@ -4,6 +4,7 @@ namespace App\Domain\Membership\Aggregates;
 
 use App\Domain\Membership\Events\MemberAddressChanged;
 use App\Domain\Membership\Events\MemberContactDataChanged;
+use App\Domain\Membership\Events\MemberPersonalDataChanged;
 use App\Domain\Membership\Events\MemberRegistered;
 use App\Domain\Membership\Exceptions\MemberAlreadyRegistered;
 use App\Domain\Membership\Exceptions\MemberNotRegistered;
@@ -19,6 +20,12 @@ final class MemberAggregate extends AggregateRoot
     private ?string $clubId = null;
 
     private ?string $memberNumber = null;
+
+    private ?string $firstName = null;
+
+    private ?string $lastName = null;
+
+    private ?string $birthDate = null;
 
     private ?string $email = null;
 
@@ -108,12 +115,45 @@ final class MemberAggregate extends AggregateRoot
         return $this;
     }
 
+    public function changePersonalData(
+        string $firstName,
+        string $lastName,
+        ?string $birthDate,
+    ): self {
+        if (! $this->registered) {
+            throw MemberNotRegistered::create();
+        }
+
+        if (
+            $this->firstName === $firstName
+            && $this->lastName === $lastName
+            && $this->birthDate === $birthDate
+        ) {
+            return $this;
+        }
+
+        $this->recordThat(
+            new MemberPersonalDataChanged(
+                firstName: $firstName,
+                lastName: $lastName,
+                birthDate: $birthDate,
+            )
+        );
+
+        return $this;
+    }
+
     protected function applyMemberRegistered(
         MemberRegistered $event
     ): void {
         $this->registered = true;
+
         $this->clubId = $event->clubId;
         $this->memberNumber = $event->memberNumber;
+
+        $this->firstName = $event->firstName;
+        $this->lastName = $event->lastName;
+        $this->birthDate = $event->birthDate;
     }
 
     protected function applyMemberAddressChanged(
@@ -134,5 +174,13 @@ final class MemberAggregate extends AggregateRoot
         $this->email = $event->email;
         $this->phone = $event->phone;
         $this->mobile = $event->mobile;
+    }
+
+    protected function applyMemberPersonalDataChanged(
+        MemberPersonalDataChanged $event,
+    ): void {
+        $this->firstName = $event->firstName;
+        $this->lastName = $event->lastName;
+        $this->birthDate = $event->birthDate;
     }
 }

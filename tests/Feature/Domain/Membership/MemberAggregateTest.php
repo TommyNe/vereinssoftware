@@ -5,6 +5,7 @@ use App\Domain\Club\Models\Club;
 use App\Domain\Membership\Aggregates\MemberAggregate;
 use App\Domain\Membership\Events\MemberAddressChanged;
 use App\Domain\Membership\Events\MemberContactDataChanged;
+use App\Domain\Membership\Events\MemberPersonalDataChanged;
 use App\Domain\Membership\Events\MemberRegistered;
 use App\Domain\Membership\Exceptions\MemberAlreadyRegistered;
 use App\Domain\Membership\Exceptions\MemberNotRegistered;
@@ -304,4 +305,145 @@ it('does not record an event when contact data did not change', function (): voi
             );
         })
         ->assertNothingRecorded();
+});
+
+it('changes personal data of a registered member', function (): void {
+    MemberAggregate::fake((string) Str::uuid())
+        ->given([
+            new MemberRegistered(
+                clubId: (string) Str::uuid(),
+                memberNumber: '10001',
+                firstName: 'Max',
+                lastName: 'Meyer',
+                birthDate: '1985-05-15',
+                joinedAt: '2026-01-01',
+            ),
+        ])
+        ->when(function (MemberAggregate $aggregate): void {
+            $aggregate->changePersonalData(
+                firstName: 'Max',
+                lastName: 'Mustermann',
+                birthDate: '1985-05-15',
+            );
+        })
+        ->assertRecorded(
+            new MemberPersonalDataChanged(
+                firstName: 'Max',
+                lastName: 'Mustermann',
+                birthDate: '1985-05-15',
+            )
+        );
+});
+
+it('does not record an event when personal data did not change', function (): void {
+    MemberAggregate::fake((string) Str::uuid())
+        ->given([
+            new MemberRegistered(
+                clubId: (string) Str::uuid(),
+                memberNumber: '10001',
+                firstName: 'Max',
+                lastName: 'Mustermann',
+                birthDate: '1985-05-15',
+                joinedAt: '2026-01-01',
+            ),
+        ])
+        ->when(function (MemberAggregate $aggregate): void {
+            $aggregate->changePersonalData(
+                firstName: 'Max',
+                lastName: 'Mustermann',
+                birthDate: '1985-05-15',
+            );
+        })
+        ->assertNothingRecorded();
+});
+
+it('cannot change personal data of an unregistered member', function (): void {
+    MemberAggregate::fake((string) Str::uuid())
+        ->when(function (MemberAggregate $aggregate): void {
+            $aggregate->changePersonalData(
+                firstName: 'Max',
+                lastName: 'Mustermann',
+                birthDate: '1985-05-15',
+            );
+        });
+})->throws(MemberNotRegistered::class);
+
+it('cannot change contact data of an unregistered member', function (): void {
+    MemberAggregate::fake((string) Str::uuid())
+        ->when(function (MemberAggregate $aggregate): void {
+            $aggregate->changeContactData(
+                email: 'max@example.de',
+                phone: null,
+                mobile: null,
+            );
+        });
+})->throws(MemberNotRegistered::class);
+
+it('projects all member changes', function (): void {
+    $club = Club::factory()->create();
+
+    $memberId = (string) Str::uuid();
+
+    MemberAggregate::retrieve($memberId)
+        ->register(
+            clubId: $club->id,
+            memberNumber: new MemberNumber('10001'),
+            firstName: 'Max',
+            lastName: 'Meyer',
+            birthDate: CarbonImmutable::parse('1985-05-15'),
+            joinedAt: CarbonImmutable::parse('2026-01-01'),
+        )
+        ->persist();
+
+    MemberAggregate::retrieve($memberId)
+        ->changeAddress(
+            new Address(
+                street: 'Dorfstraße',
+                houseNumber: '15',
+                postalCode: '49733',
+                city: 'Haren',
+                countryCode: 'DE',
+            )
+        )
+        ->persist();
+
+    MemberAggregate::retrieve($memberId)
+        ->changeContactData(
+            email: 'max@example.de',
+            phone: '05932 123456',
+            mobile: '0171 1234567',
+        )
+        ->persist();
+
+    MemberAggregate::retrieve($memberId)
+        ->changePersonalData(
+            firstName: 'Max',
+            lastName: 'Mustermann',
+            birthDate: '1985-05-15',
+        )
+        ->persist();
+
+    $member = Member::query()
+        ->findOrFail($memberId);
+
+    expect($member->first_name)
+        ->toBe('Max')
+        ->and($member->last_name)
+        ->toBe('Mustermann')
+        ->and($member->email)
+        ->toBe('max@example.de')
+        ->and($member->phone)
+        ->toBe('05932 123456')
+        ->and($member->mobile)
+        ->toBe('0171 1234567')
+        ->and($member->street)
+        ->toBe('Dorfstraße')
+        ->and($member->house_number)
+        ->toBe('15')
+        ->and($member->postal_code)
+        ->toBe('49733')
+        ->and($member->city)
+        ->toBe('Haren')
+        ->and($member->country_code)
+        ->toBe('DE');
 });

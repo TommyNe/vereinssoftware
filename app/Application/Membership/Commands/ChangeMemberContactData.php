@@ -9,6 +9,5 @@ final readonly class ChangeMemberContactData
         public ?string $email,
         public ?string $phone,
         public ?string $mobile,
-    ) {
-    }
+    ) {}
 }

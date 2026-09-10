@@ -5,14 +5,17 @@ namespace App\Http\Controllers\Api;
 use App\Application\Club\CurrentClub;
 use App\Application\Membership\Commands\ChangeMemberAddress;
 use App\Application\Membership\Commands\ChangeMemberContactData;
+use App\Application\Membership\Commands\ChangeMemberPersonalData;
 use App\Application\Membership\Commands\RegisterMember;
 use App\Application\Membership\Handlers\ChangeMemberAddressHandler;
 use App\Application\Membership\Handlers\ChangeMemberContactDataHandler;
+use App\Application\Membership\Handlers\ChangeMemberPersonalDataHandler;
 use App\Application\Membership\Handlers\RegisterMemberHandler;
 use App\Domain\Membership\Models\Member;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Membership\ChangeMemberAddressRequest;
 use App\Http\Requests\Membership\ChangeMemberContactDataRequest;
+use App\Http\Requests\Membership\ChangeMemberPersonalDataRequest;
 use App\Http\Requests\Membership\RegisterMemberRequest;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
@@ -123,6 +126,33 @@ final class MemberController extends Controller
                 email: $data['email'] ?? null,
                 phone: $data['phone'] ?? null,
                 mobile: $data['mobile'] ?? null,
+            )
+        );
+
+        $readModel->refresh();
+
+        return response()->json([
+            'data' => $readModel,
+        ]);
+    }
+
+    public function changePersonalData(
+        ChangeMemberPersonalDataRequest $request,
+        string $member,
+        ChangeMemberPersonalDataHandler $handler,
+    ): JsonResponse {
+        $readModel = Member::query()
+            ->forCurrentClub()
+            ->findOrFail($member);
+
+        $data = $request->validated();
+
+        $handler->handle(
+            new ChangeMemberPersonalData(
+                memberId: $readModel->id,
+                firstName: $data['first_name'],
+                lastName: $data['last_name'],
+                birthDate: $data['birth_date'] ?? null,
             )
         );
 

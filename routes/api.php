@@ -33,4 +33,12 @@ Route::middleware([
             'changeContactData',
         ]
     );
+
+    Route::patch(
+        '/members/{member}/personal-data',
+        [
+            MemberController::class,
+            'changePersonalData',
+        ]
+    );
 });

@@ -10,6 +10,5 @@ class MemberContactDataChanged extends ShouldBeStored
         public readonly ?string $email,
         public readonly ?string $phone,
         public readonly ?string $mobile,
-    ) {
-    }
+    ) {}
 }
