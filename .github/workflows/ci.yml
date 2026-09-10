@@ -251,6 +251,7 @@ jobs:
           MAIL_FROM_ADDRESS: ${{ vars.MAIL_FROM_ADDRESS }}
           MAIL_FROM_NAME: ${{ vars.MAIL_FROM_NAME }}
 
+
         run: |
           {
             printf 'APP_IMAGE=%q\n' "${IMAGE_NAME}:${IMAGE_TAG}"
