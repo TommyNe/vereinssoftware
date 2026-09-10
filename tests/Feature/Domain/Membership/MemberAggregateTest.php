@@ -9,7 +9,10 @@ use App\Domain\Membership\Models\Member;
 use App\Domain\Membership\ValueObjects\MemberNumber;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+
+uses(RefreshDatabase::class);
 
 it('registers a member', function (): void {
     $uuid = (string) Str::uuid();
