@@ -14,7 +14,7 @@ final class MemberProjector extends Projector
         StoredEvent $storedEvent,
     ): void {
         $member = new Member([
-            'id' => $storedEvent->aggregate_uuid,
+            'uuid' => $storedEvent->aggregate_uuid,
             'club_id' => $event->clubId,
             'member_number' => $event->memberNumber,
             'first_name' => $event->firstName,
