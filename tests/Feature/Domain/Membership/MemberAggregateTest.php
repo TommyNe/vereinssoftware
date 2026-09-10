@@ -9,7 +9,10 @@ use App\Domain\Membership\Models\Member;
 use App\Domain\Membership\ValueObjects\MemberNumber;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+
+uses(RefreshDatabase::class);
 
 it('registers a member', function (): void {
     $uuid = (string) Str::uuid();
@@ -76,9 +79,15 @@ it(
 
         setPermissionsTeamId($clubA->id);
 
-        $member = Member::factory()->create([
+        $member = new Member([
+            'id' => (string) Str::uuid(),
             'club_id' => $clubB->id,
+            'member_number' => '20001',
+            'first_name' => 'Erika',
+            'last_name' => 'Mustermann',
+            'joined_at' => CarbonImmutable::parse('2026-09-08'),
         ]);
+        $member->writeable()->save();
 
         expect(
             Member::query()
