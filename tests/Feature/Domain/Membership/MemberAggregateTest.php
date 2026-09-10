@@ -79,8 +79,13 @@ it(
 
         setPermissionsTeamId($clubA->id);
 
-        $member = Member::factory()->create([
+        $member = Member::query()->create([
+            'id' => (string) Str::uuid(),
             'club_id' => $clubB->id,
+            'member_number' => '20001',
+            'first_name' => 'Erika',
+            'last_name' => 'Mustermann',
+            'joined_at' => CarbonImmutable::parse('2026-09-08'),
         ]);
 
         expect(
