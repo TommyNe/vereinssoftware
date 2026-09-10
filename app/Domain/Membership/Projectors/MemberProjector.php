@@ -3,6 +3,7 @@
 namespace App\Domain\Membership\Projectors;
 
 use App\Domain\Membership\Events\MemberAddressChanged;
+use App\Domain\Membership\Events\MemberContactDataChanged;
 use App\Domain\Membership\Events\MemberRegistered;
 use App\Domain\Membership\Models\Member;
 use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
@@ -42,6 +43,23 @@ final class MemberProjector extends Projector
                 'postal_code' => $event->postalCode,
                 'city' => $event->city,
                 'country_code' => $event->countryCode,
+            ]);
+    }
+
+    public function onMemberContactDataChanged(
+        MemberContactDataChanged $event,
+    ): void {
+        $member = Member::query()
+            ->findOrFail(
+                $event->aggregateRootUuid()
+            );
+
+        $member
+            ->writeable()
+            ->update([
+                'email' => $event->email,
+                'phone' => $event->phone,
+                'mobile' => $event->mobile,
             ]);
     }
 

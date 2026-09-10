@@ -3,6 +3,7 @@
 namespace App\Domain\Membership\Aggregates;
 
 use App\Domain\Membership\Events\MemberAddressChanged;
+use App\Domain\Membership\Events\MemberContactDataChanged;
 use App\Domain\Membership\Events\MemberRegistered;
 use App\Domain\Membership\Exceptions\MemberAlreadyRegistered;
 use App\Domain\Membership\Exceptions\MemberNotRegistered;
@@ -18,6 +19,12 @@ final class MemberAggregate extends AggregateRoot
     private ?string $clubId = null;
 
     private ?string $memberNumber = null;
+
+    private ?string $email = null;
+
+    private ?string $phone = null;
+
+    private ?string $mobile = null;
 
     private ?Address $address = null;
 
@@ -73,6 +80,34 @@ final class MemberAggregate extends AggregateRoot
         return $this;
     }
 
+    public function changeContactData(
+        ?string $email,
+        ?string $phone,
+        ?string $mobile,
+    ): self {
+        if (! $this->registered) {
+            throw MemberNotRegistered::create();
+        }
+
+        if (
+            $this->email === $email
+            && $this->phone === $phone
+            && $this->mobile === $mobile
+        ) {
+            return $this;
+        }
+
+        $this->recordThat(
+            new MemberContactDataChanged(
+                email: $email,
+                phone: $phone,
+                mobile: $mobile,
+            )
+        );
+
+        return $this;
+    }
+
     protected function applyMemberRegistered(
         MemberRegistered $event
     ): void {
@@ -91,5 +126,13 @@ final class MemberAggregate extends AggregateRoot
             city: $event->city,
             countryCode: $event->countryCode,
         );
+    }
+
+    protected function applyMemberContactDataChanged(
+        MemberContactDataChanged $event,
+    ): void {
+        $this->email = $event->email;
+        $this->phone = $event->phone;
+        $this->mobile = $event->mobile;
     }
 }

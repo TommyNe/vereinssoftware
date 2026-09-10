@@ -25,4 +25,12 @@ Route::middleware([
             'changeAddress',
         ]
     );
+
+    Route::patch(
+        '/members/{member}/contact-data',
+        [
+            MemberController::class,
+            'changeContactData',
+        ]
+    );
 });

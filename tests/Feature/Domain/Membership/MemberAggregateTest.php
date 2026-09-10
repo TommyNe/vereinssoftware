@@ -4,6 +4,7 @@ use App\Application\Club\CurrentClub;
 use App\Domain\Club\Models\Club;
 use App\Domain\Membership\Aggregates\MemberAggregate;
 use App\Domain\Membership\Events\MemberAddressChanged;
+use App\Domain\Membership\Events\MemberContactDataChanged;
 use App\Domain\Membership\Events\MemberRegistered;
 use App\Domain\Membership\Exceptions\MemberAlreadyRegistered;
 use App\Domain\Membership\Exceptions\MemberNotRegistered;
@@ -248,3 +249,59 @@ it(
             ->toBe('DE');
     }
 );
+
+it('changes contact data of a registered member', function (): void {
+    MemberAggregate::fake((string) Str::uuid())
+        ->given([
+            new MemberRegistered(
+                clubId: (string) Str::uuid(),
+                memberNumber: '10001',
+                firstName: 'Max',
+                lastName: 'Mustermann',
+                birthDate: null,
+                joinedAt: '2026-01-01',
+            ),
+        ])
+        ->when(function (MemberAggregate $aggregate): void {
+            $aggregate->changeContactData(
+                email: 'max@example.de',
+                phone: '05932 123456',
+                mobile: '0171 1234567',
+            );
+        })
+        ->assertRecorded(
+            new MemberContactDataChanged(
+                email: 'max@example.de',
+                phone: '05932 123456',
+                mobile: '0171 1234567',
+            )
+        );
+});
+
+it('does not record an event when contact data did not change', function (): void {
+    MemberAggregate::fake((string) Str::uuid())
+        ->given([
+            new MemberRegistered(
+                clubId: (string) Str::uuid(),
+                memberNumber: '10001',
+                firstName: 'Max',
+                lastName: 'Mustermann',
+                birthDate: null,
+                joinedAt: '2026-01-01',
+            ),
+
+            new MemberContactDataChanged(
+                email: 'max@example.de',
+                phone: '05932 123456',
+                mobile: '0171 1234567',
+            ),
+        ])
+        ->when(function (MemberAggregate $aggregate): void {
+            $aggregate->changeContactData(
+                email: 'max@example.de',
+                phone: '05932 123456',
+                mobile: '0171 1234567',
+            );
+        })
+        ->assertNothingRecorded();
+});
