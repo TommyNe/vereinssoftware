@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace App\Domain\Membership\Models;
 
 use App\Domain\Club\Models\Club;
-use App\Domain\Membership\Models\Member;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

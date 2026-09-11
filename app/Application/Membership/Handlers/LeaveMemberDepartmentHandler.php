@@ -5,7 +5,7 @@ namespace App\Application\Membership\Handlers;
 use App\Application\Club\CurrentClub;
 use App\Application\Membership\Commands\LeaveMemberDepartment;
 use App\Domain\Membership\Aggregates\MemberAggregate;
-use App\Models\Department;
+use App\Domain\Membership\Models\Department;
 
 final readonly class LeaveMemberDepartmentHandler
 {

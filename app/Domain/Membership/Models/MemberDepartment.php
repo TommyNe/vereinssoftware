@@ -2,7 +2,6 @@
 
 namespace App\Domain\Membership\Models;
 
-use App\Models\Department;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\EventSourcing\Projections\Projection;

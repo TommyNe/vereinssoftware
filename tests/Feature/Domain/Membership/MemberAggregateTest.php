@@ -5,6 +5,7 @@ use App\Domain\Club\Models\Club;
 use App\Domain\Membership\Aggregates\MemberAggregate;
 use App\Domain\Membership\Events\MemberAddressChanged;
 use App\Domain\Membership\Events\MemberContactDataChanged;
+use App\Domain\Membership\Events\MemberJoinedDepartment;
 use App\Domain\Membership\Events\MemberLeftClub;
 use App\Domain\Membership\Events\MemberLeftDepartment;
 use App\Domain\Membership\Events\MemberPersonalDataChanged;
@@ -15,10 +16,10 @@ use App\Domain\Membership\Exceptions\MemberAlreadyLeftClub;
 use App\Domain\Membership\Exceptions\MemberAlreadyRegistered;
 use App\Domain\Membership\Exceptions\MemberNotInDepartment;
 use App\Domain\Membership\Exceptions\MemberNotRegistered;
+use App\Domain\Membership\Models\Department;
 use App\Domain\Membership\Models\Member;
 use App\Domain\Membership\ValueObjects\Address;
 use App\Domain\Membership\ValueObjects\MemberNumber;
-use App\Models\Department;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -585,8 +586,6 @@ it('reactivates a suspended member', function (): void {
             )
         );
 });
-
-use App\Domain\Membership\Events\MemberJoinedDepartment;
 
 it('joins a department', function (): void {
     $departmentId = (string) Str::uuid();

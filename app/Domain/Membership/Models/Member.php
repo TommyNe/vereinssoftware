@@ -5,7 +5,6 @@ namespace App\Domain\Membership\Models;
 use App\Application\Club\CurrentClub;
 use App\Domain\Club\Models\Club;
 use App\Domain\Membership\Enums\MembershipStatus;
-use App\Models\Department;
 use Database\Factories\Domain\Membership\Models\MemberFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -79,5 +78,35 @@ final class Member extends Projection
             MemberDepartment::class,
             'member_id',
         );
+    }
+
+    public function functionAssignments(): HasMany
+    {
+        return $this->hasMany(
+            MemberFunction::class
+        );
+    }
+
+    public function activeFunctionAssignments(): HasMany
+    {
+        return $this
+            ->hasMany(MemberFunction::class)
+            ->whereNull('valid_until');
+    }
+
+    public function currentFunctions(): BelongsToMany
+    {
+        return $this
+            ->belongsToMany(
+                ClubFunction::class,
+                'member_functions',
+                'member_id',
+                'club_function_id',
+            )
+            ->wherePivotNull('valid_until')
+            ->withPivot([
+                'valid_from',
+                'valid_until',
+            ]);
     }
 }
