@@ -3,14 +3,26 @@
 namespace App\Domain\Membership\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\EventSourcing\Projections\Projection;
 
-final class MemberFunction extends Model
+final class MemberFunction extends Projection
 {
     use HasUuids;
 
     protected $table = 'member_functions';
+
+    protected $primaryKey = 'id';
+
+    public function getKeyName(): string
+    {
+        return 'id';
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'id';
+    }
 
     protected $guarded = [];
 
@@ -25,7 +37,8 @@ final class MemberFunction extends Model
     public function member(): BelongsTo
     {
         return $this->belongsTo(
-            Member::class
+            Member::class,
+            'member_id',
         );
     }
 

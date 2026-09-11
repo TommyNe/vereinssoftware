@@ -83,14 +83,18 @@ final class Member extends Projection
     public function functionAssignments(): HasMany
     {
         return $this->hasMany(
-            MemberFunction::class
+            MemberFunction::class,
+            'member_id',
         );
     }
 
     public function activeFunctionAssignments(): HasMany
     {
         return $this
-            ->hasMany(MemberFunction::class)
+            ->hasMany(
+                MemberFunction::class,
+                'member_id',
+            )
             ->whereNull('valid_until');
     }
 

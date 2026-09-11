@@ -3,26 +3,32 @@
 namespace App\Http\Controllers\Api;
 
 use App\Application\Club\CurrentClub;
+use App\Application\Membership\Commands\AssignMemberFunction;
 use App\Application\Membership\Commands\ChangeMemberAddress;
 use App\Application\Membership\Commands\ChangeMemberContactData;
 use App\Application\Membership\Commands\ChangeMemberPersonalData;
 use App\Application\Membership\Commands\ChangeMembershipType;
+use App\Application\Membership\Commands\EndMemberFunction;
 use App\Application\Membership\Commands\JoinMemberDepartment;
 use App\Application\Membership\Commands\LeaveMemberDepartment;
 use App\Application\Membership\Commands\RegisterMember;
+use App\Application\Membership\Handlers\AssignMemberFunctionHandler;
 use App\Application\Membership\Handlers\ChangeMemberAddressHandler;
 use App\Application\Membership\Handlers\ChangeMemberContactDataHandler;
 use App\Application\Membership\Handlers\ChangeMemberPersonalDataHandler;
 use App\Application\Membership\Handlers\ChangeMembershipTypeHandler;
+use App\Application\Membership\Handlers\EndMemberFunctionHandler;
 use App\Application\Membership\Handlers\JoinMemberDepartmentHandler;
 use App\Application\Membership\Handlers\LeaveMemberDepartmentHandler;
 use App\Application\Membership\Handlers\RegisterMemberHandler;
 use App\Domain\Membership\Models\Member;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Membership\AssignMemberFunctionRequest;
 use App\Http\Requests\Membership\ChangeMemberAddressRequest;
 use App\Http\Requests\Membership\ChangeMemberContactDataRequest;
 use App\Http\Requests\Membership\ChangeMemberPersonalDataRequest;
 use App\Http\Requests\Membership\ChangeMembershipTypeRequest;
+use App\Http\Requests\Membership\EndMemberFunctionRequest;
 use App\Http\Requests\Membership\JoinMemberDepartmentRequest;
 use App\Http\Requests\Membership\LeaveMemberDepartmentRequest;
 use App\Http\Requests\Membership\RegisterMemberRequest;
@@ -252,6 +258,71 @@ final class MemberController extends Controller
         );
 
         $readModel->load('departments');
+
+        return response()->json([
+            'data' => $readModel,
+        ]);
+    }
+
+    public function assignFunction(
+        AssignMemberFunctionRequest $request,
+        string $member,
+        AssignMemberFunctionHandler $handler,
+    ): JsonResponse {
+        $readModel = Member::query()
+            ->forCurrentClub()
+            ->findOrFail($member);
+
+        $data = $request->validated();
+
+        $handler->handle(
+            new AssignMemberFunction(
+                memberId: $readModel->id,
+
+                clubFunctionId: $data['club_function_id'],
+
+                validFrom: CarbonImmutable::parse(
+                    $data['valid_from']
+                ),
+            )
+        );
+
+        $readModel->load([
+            'activeFunctionAssignments.clubFunction',
+        ]);
+
+        return response()->json([
+            'data' => $readModel,
+        ]);
+    }
+
+    public function endFunction(
+        EndMemberFunctionRequest $request,
+        string $member,
+        string $clubFunction,
+        EndMemberFunctionHandler $handler,
+    ): JsonResponse {
+        $readModel = Member::query()
+            ->forCurrentClub()
+            ->findOrFail($member);
+
+        $data = $request->validated();
+
+        $handler->handle(
+            new EndMemberFunction(
+                memberId: $readModel->id,
+
+                clubFunctionId: $clubFunction,
+
+                validUntil: CarbonImmutable::parse(
+                    $data['valid_until']
+                ),
+            )
+        );
+
+        $readModel->load([
+            'functionAssignments.clubFunction',
+        ]);
 
         return response()->json([
             'data' => $readModel,

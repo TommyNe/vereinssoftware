@@ -65,4 +65,20 @@ Route::middleware([
             'leaveDepartment',
         ]
     );
+
+    Route::post(
+        '/members/{member}/functions',
+        [
+            MemberController::class,
+            'assignFunction',
+        ]
+    );
+
+    Route::patch(
+        '/members/{member}/functions/{clubFunction}/end',
+        [
+            MemberController::class,
+            'endFunction',
+        ]
+    );
 });

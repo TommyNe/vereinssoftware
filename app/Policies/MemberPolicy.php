@@ -68,4 +68,20 @@ class MemberPolicy
             Permission::MembersDepartmentsManage->value
         );
     }
+
+    public function manageFunctions(
+        User $user,
+        Member $member,
+    ): bool {
+        if (
+            $member->club_id !==
+            $this->currentClub->id()
+        ) {
+            return false;
+        }
+
+        return $user->can(
+            Permission::MembersFunctionsManage->value
+        );
+    }
 }

@@ -16,7 +16,7 @@ return new class extends Migration
 
             $table
                 ->foreignUuid('member_id')
-                ->constrained('members')
+                ->constrained('members', 'uuid')
                 ->cascadeOnDelete();
 
             $table

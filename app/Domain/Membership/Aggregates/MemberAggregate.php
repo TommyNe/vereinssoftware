@@ -5,6 +5,8 @@ namespace App\Domain\Membership\Aggregates;
 use App\Domain\Membership\Enums\MembershipStatus;
 use App\Domain\Membership\Events\MemberAddressChanged;
 use App\Domain\Membership\Events\MemberContactDataChanged;
+use App\Domain\Membership\Events\MemberFunctionAssigned;
+use App\Domain\Membership\Events\MemberFunctionEnded;
 use App\Domain\Membership\Events\MemberJoinedDepartment;
 use App\Domain\Membership\Events\MemberLeftClub;
 use App\Domain\Membership\Events\MemberLeftDepartment;
@@ -13,8 +15,10 @@ use App\Domain\Membership\Events\MemberReactivated;
 use App\Domain\Membership\Events\MemberRegistered;
 use App\Domain\Membership\Events\MembershipTypeChanged;
 use App\Domain\Membership\Events\MemberSuspended;
+use App\Domain\Membership\Exceptions\InvalidFunctionPeriod;
 use App\Domain\Membership\Exceptions\MemberAlreadyLeftClub;
 use App\Domain\Membership\Exceptions\MemberAlreadyRegistered;
+use App\Domain\Membership\Exceptions\MemberDoesNotHaveFunction;
 use App\Domain\Membership\Exceptions\MemberNotInDepartment;
 use App\Domain\Membership\Exceptions\MemberNotRegistered;
 use App\Domain\Membership\ValueObjects\Address;
@@ -31,6 +35,15 @@ final class MemberAggregate extends AggregateRoot
     private ?string $memberNumber = null;
 
     private ?string $membershipTypeId = null;
+
+    private array $functionIds = [];
+
+    /**
+     * @var array<string, string>
+     *
+     * clubFunctionId => validFrom
+     */
+    private array $functionAssignments = [];
 
     private ?MembershipStatus $status = null;
 
@@ -324,6 +337,76 @@ final class MemberAggregate extends AggregateRoot
         return $this;
     }
 
+    public function assignFunction(
+        string $clubFunctionId,
+        CarbonImmutable $validFrom,
+    ): self {
+        if (! $this->registered) {
+            throw MemberNotRegistered::create();
+        }
+
+        if (
+            $this->status ===
+            MembershipStatus::Left
+        ) {
+            throw MemberAlreadyLeftClub::create();
+        }
+
+        if (
+            isset(
+                $this->functionAssignments[
+                $clubFunctionId
+                ]
+            )
+        ) {
+            return $this;
+        }
+
+        $this->recordThat(
+            new MemberFunctionAssigned(
+                clubFunctionId: $clubFunctionId,
+                validFrom: $validFrom->toDateString(),
+            )
+        );
+
+        return $this;
+    }
+
+    public function endFunction(
+        string $clubFunctionId,
+        CarbonImmutable $validUntil,
+    ): self {
+        if (! $this->registered) {
+            throw MemberNotRegistered::create();
+        }
+
+        $validFrom =
+            $this->functionAssignments[
+            $clubFunctionId
+            ] ?? null;
+
+        if ($validFrom === null) {
+            throw MemberDoesNotHaveFunction::create();
+        }
+
+        if (
+            $validUntil->lt(
+                CarbonImmutable::parse($validFrom)
+            )
+        ) {
+            throw InvalidFunctionPeriod::create();
+        }
+
+        $this->recordThat(
+            new MemberFunctionEnded(
+                clubFunctionId: $clubFunctionId,
+                validUntil: $validUntil->toDateString(),
+            )
+        );
+
+        return $this;
+    }
+
     protected function applyMemberRegistered(
         MemberRegistered $event
     ): void {
@@ -408,6 +491,24 @@ final class MemberAggregate extends AggregateRoot
         unset(
             $this->departmentIds[
             $event->departmentId
+            ]
+        );
+    }
+
+    protected function applyMemberFunctionAssigned(
+        MemberFunctionAssigned $event,
+    ): void {
+        $this->functionAssignments[
+        $event->clubFunctionId
+        ] = $event->validFrom;
+    }
+
+    protected function applyMemberFunctionEnded(
+        MemberFunctionEnded $event,
+    ): void {
+        unset(
+            $this->functionAssignments[
+            $event->clubFunctionId
             ]
         );
     }

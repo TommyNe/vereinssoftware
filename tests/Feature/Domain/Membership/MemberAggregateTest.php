@@ -5,6 +5,7 @@ use App\Domain\Club\Models\Club;
 use App\Domain\Membership\Aggregates\MemberAggregate;
 use App\Domain\Membership\Events\MemberAddressChanged;
 use App\Domain\Membership\Events\MemberContactDataChanged;
+use App\Domain\Membership\Events\MemberFunctionEnded;
 use App\Domain\Membership\Events\MemberJoinedDepartment;
 use App\Domain\Membership\Events\MemberLeftClub;
 use App\Domain\Membership\Events\MemberLeftDepartment;
@@ -12,12 +13,16 @@ use App\Domain\Membership\Events\MemberPersonalDataChanged;
 use App\Domain\Membership\Events\MemberReactivated;
 use App\Domain\Membership\Events\MemberRegistered;
 use App\Domain\Membership\Events\MemberSuspended;
+use App\Domain\Membership\Exceptions\InvalidFunctionPeriod;
 use App\Domain\Membership\Exceptions\MemberAlreadyLeftClub;
 use App\Domain\Membership\Exceptions\MemberAlreadyRegistered;
+use App\Domain\Membership\Exceptions\MemberDoesNotHaveFunction;
 use App\Domain\Membership\Exceptions\MemberNotInDepartment;
 use App\Domain\Membership\Exceptions\MemberNotRegistered;
+use App\Domain\Membership\Models\ClubFunction;
 use App\Domain\Membership\Models\Department;
 use App\Domain\Membership\Models\Member;
+use App\Domain\Membership\Models\MemberFunction;
 use App\Domain\Membership\ValueObjects\Address;
 use App\Domain\Membership\ValueObjects\MemberNumber;
 use App\Models\User;
@@ -912,5 +917,398 @@ it(
         )->toBe([
             $departmentB->id,
         ]);
+    }
+);
+
+use App\Domain\Membership\Events\MemberFunctionAssigned;
+
+it('assigns a function to a member', function (): void {
+    $clubFunctionId =
+        (string) Str::uuid();
+
+    MemberAggregate::fake(
+        (string) Str::uuid()
+    )
+        ->given([
+            new MemberRegistered(
+                clubId: (string) Str::uuid(),
+
+                memberNumber: '10001',
+
+                firstName: 'Max',
+
+                lastName: 'Mustermann',
+
+                birthDate: null,
+
+                joinedAt: '2026-01-01',
+            ),
+        ])
+        ->when(
+            function (
+                MemberAggregate $aggregate
+            ) use ($clubFunctionId): void {
+                $aggregate
+                    ->assignFunction(
+                        clubFunctionId: $clubFunctionId,
+
+                        validFrom: CarbonImmutable::parse(
+                            '2026-03-01'
+                        ),
+                    );
+            }
+        )
+        ->assertRecorded(
+            new MemberFunctionAssigned(
+                clubFunctionId: $clubFunctionId,
+
+                validFrom: '2026-03-01',
+            )
+        );
+});
+
+it(
+    'does not assign the same function twice',
+    function (): void {
+        $clubFunctionId =
+            (string) Str::uuid();
+
+        MemberAggregate::fake(
+            (string) Str::uuid()
+        )
+            ->given([
+                new MemberRegistered(
+                    clubId: (string) Str::uuid(),
+                    memberNumber: '10001',
+                    firstName: 'Max',
+                    lastName: 'Mustermann',
+                    birthDate: null,
+                    joinedAt: '2026-01-01',
+                ),
+
+                new MemberFunctionAssigned(
+                    clubFunctionId: $clubFunctionId,
+
+                    validFrom: '2026-03-01',
+                ),
+            ])
+            ->when(
+                function (
+                    MemberAggregate $aggregate
+                ) use ($clubFunctionId): void {
+                    $aggregate
+                        ->assignFunction(
+                            clubFunctionId: $clubFunctionId,
+
+                            validFrom: CarbonImmutable::parse(
+                                '2026-09-01'
+                            ),
+                        );
+                }
+            )
+            ->assertNothingRecorded();
+    }
+);
+
+it(
+    'cannot assign a function to a member who left the club',
+    function (): void {
+        MemberAggregate::fake(
+            (string) Str::uuid()
+        )
+            ->given([
+                new MemberRegistered(
+                    clubId: (string) Str::uuid(),
+                    memberNumber: '10001',
+                    firstName: 'Max',
+                    lastName: 'Mustermann',
+                    birthDate: null,
+                    joinedAt: '2026-01-01',
+                ),
+
+                new MemberLeftClub(
+                    leftAt: '2026-08-31',
+                    reason: null,
+                ),
+            ])
+            ->when(
+                function (
+                    MemberAggregate $aggregate
+                ): void {
+                    $aggregate
+                        ->assignFunction(
+                            clubFunctionId: (string) Str::uuid(),
+
+                            validFrom: CarbonImmutable::parse(
+                                '2026-09-01'
+                            ),
+                        );
+                }
+            );
+    }
+)->throws(
+    MemberAlreadyLeftClub::class
+);
+
+it('ends a member function', function (): void {
+    $clubFunctionId =
+        (string) Str::uuid();
+
+    MemberAggregate::fake(
+        (string) Str::uuid()
+    )
+        ->given([
+            new MemberRegistered(
+                clubId: (string) Str::uuid(),
+                memberNumber: '10001',
+                firstName: 'Max',
+                lastName: 'Mustermann',
+                birthDate: null,
+                joinedAt: '2026-01-01',
+            ),
+
+            new MemberFunctionAssigned(
+                clubFunctionId: $clubFunctionId,
+
+                validFrom: '2026-03-01',
+            ),
+        ])
+        ->when(
+            function (
+                MemberAggregate $aggregate
+            ) use ($clubFunctionId): void {
+                $aggregate
+                    ->endFunction(
+                        clubFunctionId: $clubFunctionId,
+
+                        validUntil: CarbonImmutable::parse(
+                            '2028-12-31'
+                        ),
+                    );
+            }
+        )
+        ->assertRecorded(
+            new MemberFunctionEnded(
+                clubFunctionId: $clubFunctionId,
+
+                validUntil: '2028-12-31',
+            )
+        );
+});
+
+it(
+    'cannot end a function the member does not have',
+    function (): void {
+        MemberAggregate::fake(
+            (string) Str::uuid()
+        )
+            ->given([
+                new MemberRegistered(
+                    clubId: (string) Str::uuid(),
+                    memberNumber: '10001',
+                    firstName: 'Max',
+                    lastName: 'Mustermann',
+                    birthDate: null,
+                    joinedAt: '2026-01-01',
+                ),
+            ])
+            ->when(
+                function (
+                    MemberAggregate $aggregate
+                ): void {
+                    $aggregate
+                        ->endFunction(
+                            clubFunctionId: (string) Str::uuid(),
+
+                            validUntil: CarbonImmutable::parse(
+                                '2026-09-11'
+                            ),
+                        );
+                }
+            );
+    }
+)->throws(
+    MemberDoesNotHaveFunction::class
+);
+
+it(
+    'cannot end a function before it started',
+    function (): void {
+        $clubFunctionId =
+            (string) Str::uuid();
+
+        MemberAggregate::fake(
+            (string) Str::uuid()
+        )
+            ->given([
+                new MemberRegistered(
+                    clubId: (string) Str::uuid(),
+                    memberNumber: '10001',
+                    firstName: 'Max',
+                    lastName: 'Mustermann',
+                    birthDate: null,
+                    joinedAt: '2026-01-01',
+                ),
+
+                new MemberFunctionAssigned(
+                    clubFunctionId: $clubFunctionId,
+
+                    validFrom: '2026-06-01',
+                ),
+            ])
+            ->when(
+                function (
+                    MemberAggregate $aggregate
+                ) use ($clubFunctionId): void {
+                    $aggregate
+                        ->endFunction(
+                            clubFunctionId: $clubFunctionId,
+
+                            validUntil: CarbonImmutable::parse(
+                                '2026-05-31'
+                            ),
+                        );
+                }
+            );
+    }
+)->throws(
+    InvalidFunctionPeriod::class
+);
+
+it(
+    'allows assigning the same function again after it ended',
+    function (): void {
+        $clubFunctionId =
+            (string) Str::uuid();
+
+        MemberAggregate::fake(
+            (string) Str::uuid()
+        )
+            ->given([
+                new MemberRegistered(
+                    clubId: (string) Str::uuid(),
+                    memberNumber: '10001',
+                    firstName: 'Max',
+                    lastName: 'Mustermann',
+                    birthDate: null,
+                    joinedAt: '2020-01-01',
+                ),
+
+                new MemberFunctionAssigned(
+                    clubFunctionId: $clubFunctionId,
+                    validFrom: '2021-01-01',
+                ),
+
+                new MemberFunctionEnded(
+                    clubFunctionId: $clubFunctionId,
+                    validUntil: '2024-12-31',
+                ),
+            ])
+            ->when(
+                function (
+                    MemberAggregate $aggregate
+                ) use ($clubFunctionId): void {
+                    $aggregate
+                        ->assignFunction(
+                            clubFunctionId: $clubFunctionId,
+
+                            validFrom: CarbonImmutable::parse(
+                                '2026-01-01'
+                            ),
+                        );
+                }
+            )
+            ->assertRecorded(
+                new MemberFunctionAssigned(
+                    clubFunctionId: $clubFunctionId,
+                    validFrom: '2026-01-01',
+                )
+            );
+    }
+);
+
+it(
+    'projects the history of member functions',
+    function (): void {
+        $club = Club::factory()->create();
+
+        $function =
+            ClubFunction::create([
+                'club_id' => $club->id,
+
+                'name' => 'Schießwart',
+            ]);
+
+        $memberId =
+            (string) Str::uuid();
+
+        MemberAggregate::retrieve(
+            $memberId
+        )
+            ->register(
+                clubId: $club->id,
+
+                memberNumber: new MemberNumber('10001'),
+
+                firstName: 'Max',
+
+                lastName: 'Mustermann',
+
+                birthDate: null,
+
+                joinedAt: CarbonImmutable::parse(
+                    '2025-01-01'
+                ),
+            )
+            ->persist();
+
+        MemberAggregate::retrieve(
+            $memberId
+        )
+            ->assignFunction(
+                clubFunctionId: $function->id,
+
+                validFrom: CarbonImmutable::parse(
+                    '2026-01-01'
+                ),
+            )
+            ->persist();
+
+        MemberAggregate::retrieve(
+            $memberId
+        )
+            ->endFunction(
+                clubFunctionId: $function->id,
+
+                validUntil: CarbonImmutable::parse(
+                    '2028-12-31'
+                ),
+            )
+            ->persist();
+
+        $assignment =
+            MemberFunction::query()
+                ->where(
+                    'member_id',
+                    $memberId
+                )
+                ->where(
+                    'club_function_id',
+                    $function->id
+                )
+                ->sole();
+
+        expect(
+            $assignment
+                ->valid_from
+                ->toDateString()
+        )
+            ->toBe('2026-01-01')
+            ->and(
+                $assignment
+                    ->valid_until
+                    ->toDateString()
+            )
+            ->toBe('2028-12-31');
     }
 );

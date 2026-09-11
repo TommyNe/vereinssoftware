@@ -5,6 +5,8 @@ namespace App\Domain\Membership\Projectors;
 use App\Domain\Membership\Enums\MembershipStatus;
 use App\Domain\Membership\Events\MemberAddressChanged;
 use App\Domain\Membership\Events\MemberContactDataChanged;
+use App\Domain\Membership\Events\MemberFunctionAssigned;
+use App\Domain\Membership\Events\MemberFunctionEnded;
 use App\Domain\Membership\Events\MemberJoinedDepartment;
 use App\Domain\Membership\Events\MemberLeftClub;
 use App\Domain\Membership\Events\MemberLeftDepartment;
@@ -15,6 +17,7 @@ use App\Domain\Membership\Events\MembershipTypeChanged;
 use App\Domain\Membership\Events\MemberSuspended;
 use App\Domain\Membership\Models\Member;
 use App\Domain\Membership\Models\MemberDepartment;
+use App\Domain\Membership\Models\MemberFunction;
 use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
 
 final class MemberProjector extends Projector
@@ -186,11 +189,67 @@ final class MemberProjector extends Projector
             ->delete();
     }
 
+    public function onMemberFunctionAssigned(
+        MemberFunctionAssigned $event,
+    ): void {
+        $assignment = new MemberFunction([
+            'member_id' => $event->aggregateRootUuid(),
+
+            'club_function_id' => $event->clubFunctionId,
+
+            'valid_from' => $event->validFrom,
+
+            'valid_until' => null,
+        ]);
+
+        $assignment
+            ->writeable()
+            ->save();
+    }
+
+    public function onMemberFunctionEnded(
+        MemberFunctionEnded $event,
+    ): void {
+        $assignment = MemberFunction::query()
+            ->where(
+                'member_id',
+                $event->aggregateRootUuid()
+            )
+            ->where(
+                'club_function_id',
+                $event->clubFunctionId
+            )
+            ->whereNull('valid_until')
+            ->firstOrFail();
+
+        $assignment
+            ->writeable()
+            ->update([
+                'valid_until' => $event->validUntil,
+            ]);
+    }
+
     public function resetState(): void
     {
+        MemberFunction::query()
+            ->each(
+                fn (MemberFunction $assignment) => $assignment
+                    ->writeable()
+                    ->delete()
+            );
+
+        MemberDepartment::query()
+            ->each(
+                fn (MemberDepartment $membership) => $membership
+                    ->writeable()
+                    ->delete()
+            );
+
         Member::query()
             ->each(
-                fn (Member $member) => $member->writeable()->delete()
+                fn (Member $member) => $member
+                    ->writeable()
+                    ->delete()
             );
     }
 }
