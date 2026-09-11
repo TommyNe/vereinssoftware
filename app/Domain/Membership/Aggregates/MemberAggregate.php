@@ -2,10 +2,15 @@
 
 namespace App\Domain\Membership\Aggregates;
 
+use App\Domain\Membership\Enums\MembershipStatus;
 use App\Domain\Membership\Events\MemberAddressChanged;
 use App\Domain\Membership\Events\MemberContactDataChanged;
+use App\Domain\Membership\Events\MemberLeftClub;
 use App\Domain\Membership\Events\MemberPersonalDataChanged;
+use App\Domain\Membership\Events\MemberReactivated;
 use App\Domain\Membership\Events\MemberRegistered;
+use App\Domain\Membership\Events\MemberSuspended;
+use App\Domain\Membership\Exceptions\MemberAlreadyLeftClub;
 use App\Domain\Membership\Exceptions\MemberAlreadyRegistered;
 use App\Domain\Membership\Exceptions\MemberNotRegistered;
 use App\Domain\Membership\ValueObjects\Address;
@@ -20,6 +25,10 @@ final class MemberAggregate extends AggregateRoot
     private ?string $clubId = null;
 
     private ?string $memberNumber = null;
+
+    private ?MembershipStatus $status = null;
+
+    private ?string $leftAt = null;
 
     private ?string $firstName = null;
 
@@ -55,6 +64,77 @@ final class MemberAggregate extends AggregateRoot
                 lastName: $lastName,
                 birthDate: $birthDate?->toDateString(),
                 joinedAt: $joinedAt->toDateString(),
+            )
+        );
+
+        return $this;
+    }
+
+    public function suspend(
+        CarbonImmutable $suspendedAt,
+        ?string $reason = null,
+    ): self {
+        if (! $this->registered) {
+            throw MemberNotRegistered::create();
+        }
+
+        if ($this->status === MembershipStatus::Left) {
+            throw MemberAlreadyLeftClub::create();
+        }
+
+        if ($this->status === MembershipStatus::Suspended) {
+            return $this;
+        }
+
+        $this->recordThat(
+            new MemberSuspended(
+                suspendedAt: $suspendedAt->toDateString(),
+                reason: $reason,
+            )
+        );
+
+        return $this;
+    }
+
+    public function reactivate(CarbonImmutable $reactivatedAt): self
+    {
+        if (! $this->registered) {
+            throw MemberNotRegistered::create();
+        }
+
+        if ($this->status === MembershipStatus::Left) {
+            throw MemberAlreadyLeftClub::create();
+        }
+
+        if ($this->status === MembershipStatus::Active) {
+            return $this;
+        }
+
+        $this->recordThat(
+            new MemberReactivated(
+                reactivatedAt: $reactivatedAt->toDateString(),
+            )
+        );
+
+        return $this;
+    }
+
+    public function leave(
+        CarbonImmutable $leftAt,
+        ?string $reason = null,
+    ): self {
+        if (! $this->registered) {
+            throw MemberNotRegistered::create();
+        }
+
+        if ($this->status === MembershipStatus::Left) {
+            throw MemberAlreadyLeftClub::create();
+        }
+
+        $this->recordThat(
+            new MemberLeftClub(
+                leftAt: $leftAt->toDateString(),
+                reason: $reason,
             )
         );
 
@@ -154,6 +234,8 @@ final class MemberAggregate extends AggregateRoot
         $this->firstName = $event->firstName;
         $this->lastName = $event->lastName;
         $this->birthDate = $event->birthDate;
+
+        $this->status = MembershipStatus::Active;
     }
 
     protected function applyMemberAddressChanged(
@@ -182,5 +264,25 @@ final class MemberAggregate extends AggregateRoot
         $this->firstName = $event->firstName;
         $this->lastName = $event->lastName;
         $this->birthDate = $event->birthDate;
+    }
+
+    protected function applyMemberSuspended(
+        MemberSuspended $event,
+    ): void {
+        $this->status = MembershipStatus::Suspended;
+    }
+
+    protected function applyMemberReactivated(
+        MemberReactivated $event,
+    ): void {
+        $this->status = MembershipStatus::Active;
+        $this->leftAt = null;
+    }
+
+    protected function applyMemberLeftClub(
+        MemberLeftClub $event,
+    ): void {
+        $this->status = MembershipStatus::Left;
+        $this->leftAt = $event->leftAt;
     }
 }

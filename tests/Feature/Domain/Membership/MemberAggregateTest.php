@@ -5,8 +5,12 @@ use App\Domain\Club\Models\Club;
 use App\Domain\Membership\Aggregates\MemberAggregate;
 use App\Domain\Membership\Events\MemberAddressChanged;
 use App\Domain\Membership\Events\MemberContactDataChanged;
+use App\Domain\Membership\Events\MemberLeftClub;
 use App\Domain\Membership\Events\MemberPersonalDataChanged;
+use App\Domain\Membership\Events\MemberReactivated;
 use App\Domain\Membership\Events\MemberRegistered;
+use App\Domain\Membership\Events\MemberSuspended;
+use App\Domain\Membership\Exceptions\MemberAlreadyLeftClub;
 use App\Domain\Membership\Exceptions\MemberAlreadyRegistered;
 use App\Domain\Membership\Exceptions\MemberNotRegistered;
 use App\Domain\Membership\Models\Member;
@@ -446,4 +450,135 @@ it('projects all member changes', function (): void {
         ->toBe('Haren')
         ->and($member->country_code)
         ->toBe('DE');
+});
+
+it('suspends an active member', function (): void {
+    MemberAggregate::fake((string) Str::uuid())
+        ->given([
+            new MemberRegistered(
+                clubId: (string) Str::uuid(),
+                memberNumber: '10001',
+                firstName: 'Max',
+                lastName: 'Mustermann',
+                birthDate: '1985-05-15',
+                joinedAt: '2026-01-01',
+            ),
+        ])
+        ->when(function (MemberAggregate $aggregate): void {
+            $aggregate->suspend(
+                CarbonImmutable::parse('2026-09-11'),
+                'Vereinssperre',
+            );
+        })
+        ->assertRecorded(
+            new MemberSuspended(
+                suspendedAt: '2026-09-11',
+                reason: 'Vereinssperre',
+            )
+        );
+});
+
+it('does not suspend an already suspended member again', function (): void {
+    MemberAggregate::fake((string) Str::uuid())
+        ->given([
+            new MemberRegistered(
+                clubId: (string) Str::uuid(),
+                memberNumber: '10001',
+                firstName: 'Max',
+                lastName: 'Mustermann',
+                birthDate: null,
+                joinedAt: '2026-01-01',
+            ),
+
+            new MemberSuspended(
+                suspendedAt: '2026-09-01',
+                reason: 'Test',
+            ),
+        ])
+        ->when(function (MemberAggregate $aggregate): void {
+            $aggregate->suspend(
+                CarbonImmutable::parse('2026-09-11'),
+                'Test',
+            );
+        })
+        ->assertNothingRecorded();
+});
+
+it('cannot suspend a member who already left the club', function (): void {
+    MemberAggregate::fake((string) Str::uuid())
+        ->given([
+            new MemberRegistered(
+                clubId: (string) Str::uuid(),
+                memberNumber: '10001',
+                firstName: 'Max',
+                lastName: 'Mustermann',
+                birthDate: null,
+                joinedAt: '2026-01-01',
+            ),
+
+            new MemberLeftClub(
+                leftAt: '2026-08-31',
+                reason: null,
+            ),
+        ])
+        ->when(function (MemberAggregate $aggregate): void {
+            $aggregate->suspend(
+                CarbonImmutable::parse('2026-09-11'),
+            );
+        });
+})->throws(MemberAlreadyLeftClub::class);
+
+it('lets an active member leave the club', function (): void {
+    MemberAggregate::fake((string) Str::uuid())
+        ->given([
+            new MemberRegistered(
+                clubId: (string) Str::uuid(),
+                memberNumber: '10001',
+                firstName: 'Max',
+                lastName: 'Mustermann',
+                birthDate: null,
+                joinedAt: '2026-01-01',
+            ),
+        ])
+        ->when(function (MemberAggregate $aggregate): void {
+            $aggregate->leave(
+                CarbonImmutable::parse('2026-12-31'),
+                'Eigener Wunsch',
+            );
+        })
+        ->assertRecorded(
+            new MemberLeftClub(
+                leftAt: '2026-12-31',
+                reason: 'Eigener Wunsch',
+            )
+        );
+});
+
+it('reactivates a suspended member', function (): void {
+    MemberAggregate::fake((string) Str::uuid())
+        ->given([
+            new MemberRegistered(
+                clubId: (string) Str::uuid(),
+                memberNumber: '10001',
+                firstName: 'Max',
+                lastName: 'Mustermann',
+                birthDate: null,
+                joinedAt: '2026-01-01',
+            ),
+
+            new MemberSuspended(
+                suspendedAt: '2026-09-01',
+                reason: 'Test',
+            ),
+        ])
+        ->when(function (MemberAggregate $aggregate): void {
+            $aggregate->reactivate(
+                CarbonImmutable::parse('2026-09-11'),
+            );
+        })
+        ->assertRecorded(
+            new MemberReactivated(
+                reactivatedAt: '2026-09-11',
+            )
+        );
 });

@@ -4,7 +4,7 @@ namespace App\Domain\Membership\Events;
 
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
-class MemberRegistered extends ShouldBeStored
+final class MemberRegistered extends ShouldBeStored
 {
     public function __construct(
         public readonly string $clubId,

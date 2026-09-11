@@ -2,10 +2,14 @@
 
 namespace App\Domain\Membership\Projectors;
 
+use App\Domain\Membership\Enums\MembershipStatus;
 use App\Domain\Membership\Events\MemberAddressChanged;
 use App\Domain\Membership\Events\MemberContactDataChanged;
+use App\Domain\Membership\Events\MemberLeftClub;
 use App\Domain\Membership\Events\MemberPersonalDataChanged;
+use App\Domain\Membership\Events\MemberReactivated;
 use App\Domain\Membership\Events\MemberRegistered;
+use App\Domain\Membership\Events\MemberSuspended;
 use App\Domain\Membership\Models\Member;
 use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
 
@@ -78,6 +82,53 @@ final class MemberProjector extends Projector
                 'first_name' => $event->firstName,
                 'last_name' => $event->lastName,
                 'birth_date' => $event->birthDate,
+            ]);
+    }
+
+    public function onMemberSuspended(
+        MemberSuspended $event,
+    ): void {
+        $member = Member::query()
+            ->findOrFail(
+                $event->aggregateRootUuid()
+            );
+
+        $member
+            ->writeable()
+            ->update([
+                'status' => MembershipStatus::Suspended->value,
+            ]);
+    }
+
+    public function onMemberReactivated(
+        MemberReactivated $event,
+    ): void {
+        $member = Member::query()
+            ->findOrFail(
+                $event->aggregateRootUuid()
+            );
+
+        $member
+            ->writeable()
+            ->update([
+                'status' => MembershipStatus::Active->value,
+                'left_at' => null,
+            ]);
+    }
+
+    public function onMemberLeftClub(
+        MemberLeftClub $event,
+    ): void {
+        $member = Member::query()
+            ->findOrFail(
+                $event->aggregateRootUuid()
+            );
+
+        $member
+            ->writeable()
+            ->update([
+                'status' => MembershipStatus::Left->value,
+                'left_at' => $event->leftAt,
             ]);
     }
 

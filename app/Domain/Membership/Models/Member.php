@@ -4,6 +4,7 @@ namespace App\Domain\Membership\Models;
 
 use App\Application\Club\CurrentClub;
 use App\Domain\Club\Models\Club;
+use App\Domain\Membership\Enums\MembershipStatus;
 use Database\Factories\Domain\Membership\Models\MemberFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,18 +19,20 @@ final class Member extends Projection
 
     protected $guarded = [];
 
-    protected static function newFactory(): MemberFactory
-    {
-        return MemberFactory::new();
-    }
-
     protected function casts(): array
     {
         return [
             'birth_date' => 'date',
             'joined_at' => 'date',
             'left_at' => 'date',
+
+            'status' => MembershipStatus::class,
         ];
+    }
+
+    protected static function newFactory(): MemberFactory
+    {
+        return MemberFactory::new();
     }
 
     public function scopeForCurrentClub(

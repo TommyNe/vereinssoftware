@@ -4,7 +4,7 @@ namespace App\Domain\Membership\Events;
 
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
-class MemberAddressChanged extends ShouldBeStored
+final class MemberAddressChanged extends ShouldBeStored
 {
     public function __construct(
         public readonly string $street,

@@ -4,7 +4,7 @@ namespace App\Domain\Membership\Events;
 
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
-class MemberContactDataChanged extends ShouldBeStored
+final class MemberContactDataChanged extends ShouldBeStored
 {
     public function __construct(
         public readonly ?string $email,
