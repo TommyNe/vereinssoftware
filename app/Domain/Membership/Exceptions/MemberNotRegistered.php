@@ -2,7 +2,7 @@
 
 namespace App\Domain\Membership\Exceptions;
 
-class MemberNotRegistered extends \DomainException
+final class MemberNotRegistered extends \DomainException
 {
     public static function create(): self
     {

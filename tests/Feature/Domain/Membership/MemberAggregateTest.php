@@ -6,16 +6,19 @@ use App\Domain\Membership\Aggregates\MemberAggregate;
 use App\Domain\Membership\Events\MemberAddressChanged;
 use App\Domain\Membership\Events\MemberContactDataChanged;
 use App\Domain\Membership\Events\MemberLeftClub;
+use App\Domain\Membership\Events\MemberLeftDepartment;
 use App\Domain\Membership\Events\MemberPersonalDataChanged;
 use App\Domain\Membership\Events\MemberReactivated;
 use App\Domain\Membership\Events\MemberRegistered;
 use App\Domain\Membership\Events\MemberSuspended;
 use App\Domain\Membership\Exceptions\MemberAlreadyLeftClub;
 use App\Domain\Membership\Exceptions\MemberAlreadyRegistered;
+use App\Domain\Membership\Exceptions\MemberNotInDepartment;
 use App\Domain\Membership\Exceptions\MemberNotRegistered;
 use App\Domain\Membership\Models\Member;
 use App\Domain\Membership\ValueObjects\Address;
 use App\Domain\Membership\ValueObjects\MemberNumber;
+use App\Models\Department;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -582,3 +585,333 @@ it('reactivates a suspended member', function (): void {
             )
         );
 });
+
+use App\Domain\Membership\Events\MemberJoinedDepartment;
+
+it('joins a department', function (): void {
+    $departmentId = (string) Str::uuid();
+
+    MemberAggregate::fake(
+        (string) Str::uuid()
+    )
+        ->given([
+            new MemberRegistered(
+                clubId: (string) Str::uuid(),
+
+                memberNumber: '10001',
+                firstName: 'Max',
+                lastName: 'Mustermann',
+                birthDate: null,
+                joinedAt: '2026-01-01',
+            ),
+        ])
+        ->when(
+            function (
+                MemberAggregate $aggregate
+            ) use ($departmentId): void {
+                $aggregate->joinDepartment(
+                    departmentId: $departmentId,
+
+                    joinedAt: CarbonImmutable::parse(
+                        '2026-09-11'
+                    ),
+                );
+            }
+        )
+        ->assertRecorded(
+            new MemberJoinedDepartment(
+                departmentId: $departmentId,
+
+                joinedAt: '2026-09-11',
+            )
+        );
+});
+
+it(
+    'does not join the same department twice',
+    function (): void {
+        $departmentId =
+            (string) Str::uuid();
+
+        MemberAggregate::fake(
+            (string) Str::uuid()
+        )
+            ->given([
+                new MemberRegistered(
+                    clubId: (string) Str::uuid(),
+                    memberNumber: '10001',
+                    firstName: 'Max',
+                    lastName: 'Mustermann',
+                    birthDate: null,
+                    joinedAt: '2026-01-01',
+                ),
+
+                new MemberJoinedDepartment(
+                    departmentId: $departmentId,
+                    joinedAt: '2026-02-01',
+                ),
+            ])
+            ->when(
+                function (
+                    MemberAggregate $aggregate
+                ) use ($departmentId): void {
+                    $aggregate
+                        ->joinDepartment(
+                            departmentId: $departmentId,
+
+                            joinedAt: CarbonImmutable::parse(
+                                '2026-09-11'
+                            ),
+                        );
+                }
+            )
+            ->assertNothingRecorded();
+    }
+);
+
+it(
+    'cannot join a department after leaving the club',
+    function (): void {
+        $departmentId =
+            (string) Str::uuid();
+
+        MemberAggregate::fake(
+            (string) Str::uuid()
+        )
+            ->given([
+                new MemberRegistered(
+                    clubId: (string) Str::uuid(),
+                    memberNumber: '10001',
+                    firstName: 'Max',
+                    lastName: 'Mustermann',
+                    birthDate: null,
+                    joinedAt: '2026-01-01',
+                ),
+
+                new MemberLeftClub(
+                    leftAt: '2026-09-01',
+                    reason: 'Eigener Wunsch',
+                ),
+            ])
+            ->when(
+                function (
+                    MemberAggregate $aggregate
+                ) use ($departmentId): void {
+                    $aggregate
+                        ->joinDepartment(
+                            departmentId: $departmentId,
+
+                            joinedAt: CarbonImmutable::parse(
+                                '2026-09-11'
+                            ),
+                        );
+                }
+            );
+    }
+)->throws(
+    MemberAlreadyLeftClub::class
+);
+
+it('leaves a department', function (): void {
+    $departmentId = (string) Str::uuid();
+
+    MemberAggregate::fake(
+        (string) Str::uuid()
+    )
+        ->given([
+            new MemberRegistered(
+                clubId: (string) Str::uuid(),
+                memberNumber: '10001',
+                firstName: 'Max',
+                lastName: 'Mustermann',
+                birthDate: null,
+                joinedAt: '2026-01-01',
+            ),
+
+            new MemberJoinedDepartment(
+                departmentId: $departmentId,
+                joinedAt: '2026-02-01',
+            ),
+        ])
+        ->when(
+            function (
+                MemberAggregate $aggregate
+            ) use ($departmentId): void {
+                $aggregate->leaveDepartment(
+                    departmentId: $departmentId,
+
+                    leftAt: CarbonImmutable::parse(
+                        '2026-09-11'
+                    ),
+                );
+            }
+        )
+        ->assertRecorded(
+            new MemberLeftDepartment(
+                departmentId: $departmentId,
+                leftAt: '2026-09-11',
+            )
+        );
+});
+
+it(
+    'cannot leave a department the member has not joined',
+    function (): void {
+        MemberAggregate::fake(
+            (string) Str::uuid()
+        )
+            ->given([
+                new MemberRegistered(
+                    clubId: (string) Str::uuid(),
+                    memberNumber: '10001',
+                    firstName: 'Max',
+                    lastName: 'Mustermann',
+                    birthDate: null,
+                    joinedAt: '2026-01-01',
+                ),
+            ])
+            ->when(
+                function (
+                    MemberAggregate $aggregate
+                ): void {
+                    $aggregate
+                        ->leaveDepartment(
+                            departmentId: (string) Str::uuid(),
+
+                            leftAt: CarbonImmutable::parse(
+                                '2026-09-11'
+                            ),
+                        );
+                }
+            );
+    }
+)->throws(
+    MemberNotInDepartment::class
+);
+
+it(
+    'can rejoin a department after leaving it',
+    function (): void {
+        $departmentId =
+            (string) Str::uuid();
+
+        MemberAggregate::fake(
+            (string) Str::uuid()
+        )
+            ->given([
+                new MemberRegistered(
+                    clubId: (string) Str::uuid(),
+                    memberNumber: '10001',
+                    firstName: 'Max',
+                    lastName: 'Mustermann',
+                    birthDate: null,
+                    joinedAt: '2026-01-01',
+                ),
+
+                new MemberJoinedDepartment(
+                    departmentId: $departmentId,
+                    joinedAt: '2026-02-01',
+                ),
+
+                new MemberLeftDepartment(
+                    departmentId: $departmentId,
+                    leftAt: '2026-08-31',
+                ),
+            ])
+            ->when(
+                function (
+                    MemberAggregate $aggregate
+                ) use ($departmentId): void {
+                    $aggregate
+                        ->joinDepartment(
+                            departmentId: $departmentId,
+
+                            joinedAt: CarbonImmutable::parse(
+                                '2026-09-11'
+                            ),
+                        );
+                }
+            )
+            ->assertRecorded(
+                new MemberJoinedDepartment(
+                    departmentId: $departmentId,
+
+                    joinedAt: '2026-09-11',
+                )
+            );
+    }
+);
+
+it(
+    'projects current department memberships',
+    function (): void {
+        $club = Club::factory()->create();
+
+        $departmentA = Department::create([
+            'club_id' => $club->id,
+            'name' => 'Luftgewehr',
+        ]);
+
+        $departmentB = Department::create([
+            'club_id' => $club->id,
+            'name' => 'Kleinkaliber',
+        ]);
+
+        $memberId = (string) Str::uuid();
+
+        MemberAggregate::retrieve($memberId)
+            ->register(
+                clubId: $club->id,
+                memberNumber: new MemberNumber('10001'),
+                firstName: 'Max',
+                lastName: 'Mustermann',
+                birthDate: null,
+                joinedAt: CarbonImmutable::parse(
+                    '2026-01-01'
+                ),
+            )
+            ->persist();
+
+        MemberAggregate::retrieve($memberId)
+            ->joinDepartment(
+                departmentId: $departmentA->id,
+
+                joinedAt: CarbonImmutable::parse(
+                    '2026-02-01'
+                ),
+            )
+            ->persist();
+
+        MemberAggregate::retrieve($memberId)
+            ->joinDepartment(
+                departmentId: $departmentB->id,
+
+                joinedAt: CarbonImmutable::parse(
+                    '2026-03-01'
+                ),
+            )
+            ->persist();
+
+        MemberAggregate::retrieve($memberId)
+            ->leaveDepartment(
+                departmentId: $departmentA->id,
+
+                leftAt: CarbonImmutable::parse(
+                    '2026-09-11'
+                ),
+            )
+            ->persist();
+
+        $member = Member::query()
+            ->findOrFail($memberId);
+
+        expect(
+            $member
+                ->departments()
+                ->pluck('departments.id')
+                ->all()
+        )->toBe([
+            $departmentB->id,
+        ]);
+    }
+);

@@ -2,11 +2,13 @@
 
 namespace App\Http\Requests\Membership;
 
+use App\Application\Club\CurrentClub;
 use App\Domain\Membership\Models\Member;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-final class ChangeMemberPersonalDataRequest extends FormRequest
+final class ChangeMembershipTypeRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -27,19 +29,6 @@ final class ChangeMemberPersonalDataRequest extends FormRequest
         ) ?? false;
     }
 
-    protected function prepareForValidation(): void
-    {
-        $this->merge([
-            'first_name' => trim(
-                (string) $this->input('first_name')
-            ),
-
-            'last_name' => trim(
-                (string) $this->input('last_name')
-            ),
-        ]);
-    }
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -47,23 +36,27 @@ final class ChangeMemberPersonalDataRequest extends FormRequest
      */
     public function rules(): array
     {
+        $currentClub = app(CurrentClub::class);
+
         return [
-            'first_name' => [
+            'membership_type_id' => [
                 'required',
-                'string',
-                'max:150',
-            ],
+                'uuid',
 
-            'last_name' => [
-                'required',
-                'string',
-                'max:150',
-            ],
-
-            'birth_date' => [
-                'nullable',
-                'date',
-                'before_or_equal:today',
+                Rule::exists(
+                    'membership_types',
+                    'id'
+                )->where(
+                    fn ($query) => $query
+                        ->where(
+                            'club_id',
+                            $currentClub->id()
+                        )
+                        ->where(
+                            'is_active',
+                            true
+                        )
+                ),
             ],
         ];
     }

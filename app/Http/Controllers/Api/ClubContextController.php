@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Club\SwitchClubRequest;
 use Illuminate\Http\JsonResponse;
 
-class ClubContextController extends Controller
+final class ClubContextController extends Controller
 {
     public function switch(
         SwitchClubRequest $request

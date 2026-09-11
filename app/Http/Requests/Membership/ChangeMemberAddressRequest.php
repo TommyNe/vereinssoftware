@@ -6,7 +6,7 @@ use App\Domain\Membership\Models\Member;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class ChangeMemberAddressRequest extends FormRequest
+final class ChangeMemberAddressRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

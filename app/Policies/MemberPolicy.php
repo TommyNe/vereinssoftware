@@ -52,4 +52,20 @@ class MemberPolicy
             Permission::MembersCreate->value
         );
     }
+
+    public function manageDepartments(
+        User $user,
+        Member $member,
+    ): bool {
+        if (
+            $member->club_id !==
+            $this->currentClub->id()
+        ) {
+            return false;
+        }
+
+        return $user->can(
+            Permission::MembersDepartmentsManage->value
+        );
+    }
 }

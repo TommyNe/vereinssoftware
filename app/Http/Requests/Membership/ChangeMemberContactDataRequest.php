@@ -6,7 +6,7 @@ use App\Domain\Membership\Models\Member;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class ChangeMemberContactDataRequest extends FormRequest
+final class ChangeMemberContactDataRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

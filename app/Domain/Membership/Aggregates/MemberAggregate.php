@@ -5,13 +5,17 @@ namespace App\Domain\Membership\Aggregates;
 use App\Domain\Membership\Enums\MembershipStatus;
 use App\Domain\Membership\Events\MemberAddressChanged;
 use App\Domain\Membership\Events\MemberContactDataChanged;
+use App\Domain\Membership\Events\MemberJoinedDepartment;
 use App\Domain\Membership\Events\MemberLeftClub;
+use App\Domain\Membership\Events\MemberLeftDepartment;
 use App\Domain\Membership\Events\MemberPersonalDataChanged;
 use App\Domain\Membership\Events\MemberReactivated;
 use App\Domain\Membership\Events\MemberRegistered;
+use App\Domain\Membership\Events\MembershipTypeChanged;
 use App\Domain\Membership\Events\MemberSuspended;
 use App\Domain\Membership\Exceptions\MemberAlreadyLeftClub;
 use App\Domain\Membership\Exceptions\MemberAlreadyRegistered;
+use App\Domain\Membership\Exceptions\MemberNotInDepartment;
 use App\Domain\Membership\Exceptions\MemberNotRegistered;
 use App\Domain\Membership\ValueObjects\Address;
 use App\Domain\Membership\ValueObjects\MemberNumber;
@@ -26,7 +30,14 @@ final class MemberAggregate extends AggregateRoot
 
     private ?string $memberNumber = null;
 
+    private ?string $membershipTypeId = null;
+
     private ?MembershipStatus $status = null;
+
+    /**
+     * @var array<string, true>
+     */
+    private array $departmentIds = [];
 
     private ?string $leftAt = null;
 
@@ -223,6 +234,96 @@ final class MemberAggregate extends AggregateRoot
         return $this;
     }
 
+    public function changeMembershipType(
+        string $membershipTypeId,
+    ): self {
+        if (! $this->registered) {
+            throw MemberNotRegistered::create();
+        }
+
+        if ($this->status === MembershipStatus::Left) {
+            throw MemberAlreadyLeftClub::create();
+        }
+
+        if (
+            $this->membershipTypeId ===
+            $membershipTypeId
+        ) {
+            return $this;
+        }
+
+        $this->recordThat(
+            new MembershipTypeChanged(
+                membershipTypeId: $membershipTypeId,
+            )
+        );
+
+        return $this;
+    }
+
+    public function joinDepartment(
+        string $departmentId,
+        CarbonImmutable $joinedAt,
+    ): self {
+        if (! $this->registered) {
+            throw MemberNotRegistered::create();
+        }
+
+        if (
+            $this->status ===
+            MembershipStatus::Left
+        ) {
+            throw MemberAlreadyLeftClub::create();
+        }
+
+        if (
+            isset(
+                $this->departmentIds[
+                $departmentId
+                ]
+            )
+        ) {
+            return $this;
+        }
+
+        $this->recordThat(
+            new MemberJoinedDepartment(
+                departmentId: $departmentId,
+                joinedAt: $joinedAt->toDateString(),
+            )
+        );
+
+        return $this;
+    }
+
+    public function leaveDepartment(
+        string $departmentId,
+        CarbonImmutable $leftAt,
+    ): self {
+        if (! $this->registered) {
+            throw MemberNotRegistered::create();
+        }
+
+        if (
+            ! isset(
+                $this->departmentIds[
+                $departmentId
+                ]
+            )
+        ) {
+            throw MemberNotInDepartment::create();
+        }
+
+        $this->recordThat(
+            new MemberLeftDepartment(
+                departmentId: $departmentId,
+                leftAt: $leftAt->toDateString(),
+            )
+        );
+
+        return $this;
+    }
+
     protected function applyMemberRegistered(
         MemberRegistered $event
     ): void {
@@ -284,5 +385,30 @@ final class MemberAggregate extends AggregateRoot
     ): void {
         $this->status = MembershipStatus::Left;
         $this->leftAt = $event->leftAt;
+    }
+
+    protected function applyMembershipTypeChanged(
+        MembershipTypeChanged $event,
+    ): void {
+        $this->membershipTypeId =
+            $event->membershipTypeId;
+    }
+
+    protected function applyMemberJoinedDepartment(
+        MemberJoinedDepartment $event,
+    ): void {
+        $this->departmentIds[
+        $event->departmentId
+        ] = true;
+    }
+
+    protected function applyMemberLeftDepartment(
+        MemberLeftDepartment $event,
+    ): void {
+        unset(
+            $this->departmentIds[
+            $event->departmentId
+            ]
+        );
     }
 }

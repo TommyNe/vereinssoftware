@@ -6,16 +6,25 @@ use App\Application\Club\CurrentClub;
 use App\Application\Membership\Commands\ChangeMemberAddress;
 use App\Application\Membership\Commands\ChangeMemberContactData;
 use App\Application\Membership\Commands\ChangeMemberPersonalData;
+use App\Application\Membership\Commands\ChangeMembershipType;
+use App\Application\Membership\Commands\JoinMemberDepartment;
+use App\Application\Membership\Commands\LeaveMemberDepartment;
 use App\Application\Membership\Commands\RegisterMember;
 use App\Application\Membership\Handlers\ChangeMemberAddressHandler;
 use App\Application\Membership\Handlers\ChangeMemberContactDataHandler;
 use App\Application\Membership\Handlers\ChangeMemberPersonalDataHandler;
+use App\Application\Membership\Handlers\ChangeMembershipTypeHandler;
+use App\Application\Membership\Handlers\JoinMemberDepartmentHandler;
+use App\Application\Membership\Handlers\LeaveMemberDepartmentHandler;
 use App\Application\Membership\Handlers\RegisterMemberHandler;
 use App\Domain\Membership\Models\Member;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Membership\ChangeMemberAddressRequest;
 use App\Http\Requests\Membership\ChangeMemberContactDataRequest;
 use App\Http\Requests\Membership\ChangeMemberPersonalDataRequest;
+use App\Http\Requests\Membership\ChangeMembershipTypeRequest;
+use App\Http\Requests\Membership\JoinMemberDepartmentRequest;
+use App\Http\Requests\Membership\LeaveMemberDepartmentRequest;
 use App\Http\Requests\Membership\RegisterMemberRequest;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
@@ -157,6 +166,92 @@ final class MemberController extends Controller
         );
 
         $readModel->refresh();
+
+        return response()->json([
+            'data' => $readModel,
+        ]);
+    }
+
+    public function changeMembershipType(
+        ChangeMembershipTypeRequest $request,
+        string $member,
+        ChangeMembershipTypeHandler $handler,
+    ): JsonResponse {
+        $readModel = Member::query()
+            ->forCurrentClub()
+            ->findOrFail($member);
+
+        $data = $request->validated();
+
+        $handler->handle(
+            new ChangeMembershipType(
+                memberId: $readModel->id,
+                membershipTypeId: $data['membership_type_id'],
+            )
+        );
+
+        $readModel->refresh();
+
+        return response()->json([
+            'data' => $readModel,
+        ]);
+    }
+
+    public function joinDepartment(
+        JoinMemberDepartmentRequest $request,
+        string $member,
+        JoinMemberDepartmentHandler $handler,
+    ): JsonResponse {
+        $readModel = Member::query()
+            ->forCurrentClub()
+            ->findOrFail($member);
+
+        $data = $request->validated();
+
+        $handler->handle(
+            new JoinMemberDepartment(
+                memberId: $readModel->uuid,
+
+                departmentId: $data['department_id'],
+
+                joinedAt: CarbonImmutable::parse(
+                    $data['joined_at']
+                ),
+            )
+        );
+
+        $readModel->load('departments');
+
+        return response()->json([
+            'data' => $readModel,
+        ]);
+    }
+
+    public function leaveDepartment(
+        LeaveMemberDepartmentRequest $request,
+        string $member,
+        string $department,
+        LeaveMemberDepartmentHandler $handler,
+    ): JsonResponse {
+        $readModel = Member::query()
+            ->forCurrentClub()
+            ->findOrFail($member);
+
+        $data = $request->validated();
+
+        $handler->handle(
+            new LeaveMemberDepartment(
+                memberId: $readModel->uuid,
+
+                departmentId: $department,
+
+                leftAt: CarbonImmutable::parse(
+                    $data['left_at']
+                ),
+            )
+        );
+
+        $readModel->load('departments');
 
         return response()->json([
             'data' => $readModel,

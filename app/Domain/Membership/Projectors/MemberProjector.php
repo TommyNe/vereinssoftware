@@ -5,12 +5,16 @@ namespace App\Domain\Membership\Projectors;
 use App\Domain\Membership\Enums\MembershipStatus;
 use App\Domain\Membership\Events\MemberAddressChanged;
 use App\Domain\Membership\Events\MemberContactDataChanged;
+use App\Domain\Membership\Events\MemberJoinedDepartment;
 use App\Domain\Membership\Events\MemberLeftClub;
+use App\Domain\Membership\Events\MemberLeftDepartment;
 use App\Domain\Membership\Events\MemberPersonalDataChanged;
 use App\Domain\Membership\Events\MemberReactivated;
 use App\Domain\Membership\Events\MemberRegistered;
+use App\Domain\Membership\Events\MembershipTypeChanged;
 use App\Domain\Membership\Events\MemberSuspended;
 use App\Domain\Membership\Models\Member;
+use App\Domain\Membership\Models\MemberDepartment;
 use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
 
 final class MemberProjector extends Projector
@@ -130,6 +134,56 @@ final class MemberProjector extends Projector
                 'status' => MembershipStatus::Left->value,
                 'left_at' => $event->leftAt,
             ]);
+    }
+
+    public function onMembershipTypeChanged(
+        MembershipTypeChanged $event,
+    ): void {
+        $member = Member::query()
+            ->findOrFail(
+                $event->aggregateRootUuid()
+            );
+
+        $member
+            ->writeable()
+            ->update([
+                'membership_type_id' => $event->membershipTypeId,
+            ]);
+    }
+
+    public function onMemberJoinedDepartment(
+        MemberJoinedDepartment $event,
+    ): void {
+        $membership = new MemberDepartment([
+            'member_id' => $event->aggregateRootUuid(),
+
+            'department_id' => $event->departmentId,
+
+            'joined_at' => $event->joinedAt,
+        ]);
+
+        $membership
+            ->writeable()
+            ->save();
+    }
+
+    public function onMemberLeftDepartment(
+        MemberLeftDepartment $event,
+    ): void {
+        $membership = MemberDepartment::query()
+            ->where(
+                'member_id',
+                $event->aggregateRootUuid(),
+            )
+            ->where(
+                'department_id',
+                $event->departmentId,
+            )
+            ->firstOrFail();
+
+        $membership
+            ->writeable()
+            ->delete();
     }
 
     public function resetState(): void

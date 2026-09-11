@@ -41,4 +41,28 @@ Route::middleware([
             'changePersonalData',
         ]
     );
+
+    Route::patch(
+        '/members/{member}/membership-type',
+        [
+            MemberController::class,
+            'changeMembershipType',
+        ]
+    );
+
+    Route::post(
+        '/members/{member}/departments',
+        [
+            MemberController::class,
+            'joinDepartment',
+        ]
+    );
+
+    Route::delete(
+        '/members/{member}/departments/{department}',
+        [
+            MemberController::class,
+            'leaveDepartment',
+        ]
+    );
 });

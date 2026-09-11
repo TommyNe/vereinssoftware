@@ -4,12 +4,12 @@ namespace App\Domain\Membership\Exceptions;
 
 use DomainException;
 
-final class MemberAlreadyRegistered extends DomainException
+final class MemberNotInDepartment extends DomainException
 {
     public static function create(): self
     {
         return new self(
-            'Dieses Mitglieder-Aggregat wurde bereits angelegt.'
+            'Das Mitglied gehört dieser Abteilung nicht an.'
         );
     }
 }

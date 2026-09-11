@@ -6,7 +6,7 @@ use App\Domain\Membership\Models\Member;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-final class ChangeMemberPersonalDataRequest extends FormRequest
+class JoinMemberDepartmentRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -15,29 +15,18 @@ final class ChangeMemberPersonalDataRequest extends FormRequest
     {
         $member = Member::query()
             ->forCurrentClub()
-            ->find($this->route('member'));
+            ->find(
+                $this->route('member')
+            );
 
         if ($member === null) {
             return false;
         }
 
         return $this->user()?->can(
-            'update',
+            'manageDepartments',
             $member,
         ) ?? false;
-    }
-
-    protected function prepareForValidation(): void
-    {
-        $this->merge([
-            'first_name' => trim(
-                (string) $this->input('first_name')
-            ),
-
-            'last_name' => trim(
-                (string) $this->input('last_name')
-            ),
-        ]);
     }
 
     /**
@@ -48,22 +37,14 @@ final class ChangeMemberPersonalDataRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name' => [
+            'department_id' => [
                 'required',
-                'string',
-                'max:150',
+                'uuid',
             ],
 
-            'last_name' => [
+            'joined_at' => [
                 'required',
-                'string',
-                'max:150',
-            ],
-
-            'birth_date' => [
-                'nullable',
                 'date',
-                'before_or_equal:today',
             ],
         ];
     }
