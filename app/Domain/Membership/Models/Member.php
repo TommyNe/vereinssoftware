@@ -121,8 +121,7 @@ final class Member extends Projection
     protected function fullName(): Attribute
     {
         return Attribute::make(
-            get: fn (): string =>
-            trim(
+            get: fn (): string => trim(
                 "{$this->first_name} {$this->last_name}"
             ),
         );

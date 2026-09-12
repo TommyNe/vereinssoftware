@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Domain\Club\Models\Club;
+use App\Filament\Pages\Tenancy\RegisterClub;
 use App\Http\Middleware\SetCurrentClub;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -29,7 +31,12 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->emailVerification()
             ->strictAuthorization()
+            ->tenant(Club::class)
+            ->tenantRegistration(
+                RegisterClub::class
+            )
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -56,7 +63,10 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-                SetCurrentClub::class
+            ])
+
+            ->tenantMiddleware([
+                SetCurrentClub::class,
             ], isPersistent: true);
     }
 }

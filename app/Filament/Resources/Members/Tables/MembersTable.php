@@ -42,16 +42,12 @@ final class MembersTable
                     ->label('Status')
                     ->badge()
                     ->formatStateUsing(
-                        fn (MembershipStatus $state): string =>
-                        match ($state) {
-                            MembershipStatus::Active =>
-                            'Aktiv',
+                        fn (MembershipStatus $state): string => match ($state) {
+                            MembershipStatus::Active => 'Aktiv',
 
-                            MembershipStatus::Suspended =>
-                            'Gesperrt',
+                            MembershipStatus::Suspended => 'Gesperrt',
 
-                            MembershipStatus::Left =>
-                            'Ausgetreten',
+                            MembershipStatus::Left => 'Ausgetreten',
                         }
                     ),
 
