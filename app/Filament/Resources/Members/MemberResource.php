@@ -8,12 +8,12 @@ use App\Filament\Resources\Members\Pages\ViewMember;
 use App\Filament\Resources\Members\Schemas\MemberForm;
 use App\Filament\Resources\Members\Schemas\MemberInfolist;
 use App\Filament\Resources\Members\Tables\MembersTable;
-use Illuminate\Database\Eloquent\Builder;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class MemberResource extends Resource
 {
@@ -38,10 +38,15 @@ class MemberResource extends Resource
         return MembersTable::configure($table);
     }
 
+    /**
+     * @return Builder<Member>
+     */
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->forCurrentClub();
+        /** @var Builder<Member> $query */
+        $query = parent::getEloquentQuery();
+
+        return $query->forCurrentClub();
     }
 
     public static function getRelations(): array
