@@ -7,6 +7,7 @@ use App\Domain\Club\Models\Club;
 use App\Domain\Membership\Enums\MembershipStatus;
 use Database\Factories\Domain\Membership\Models\MemberFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -112,5 +113,18 @@ final class Member extends Projection
                 'valid_from',
                 'valid_until',
             ]);
+    }
+
+    /**
+     * @property-read string $full_name
+     */
+    protected function fullName(): Attribute
+    {
+        return Attribute::make(
+            get: fn (): string =>
+            trim(
+                "{$this->first_name} {$this->last_name}"
+            ),
+        );
     }
 }

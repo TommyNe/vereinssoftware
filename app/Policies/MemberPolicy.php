@@ -21,7 +21,8 @@ class MemberPolicy
         Member $member,
     ): bool {
         if (
-            $member->club_id !== $this->currentClub->id()
+            $member->club_id !==
+            $this->currentClub->id()
         ) {
             return false;
         }
@@ -41,16 +42,12 @@ class MemberPolicy
             return false;
         }
 
-        return $user->can(
-            Permission::MembersUpdate->value
-        );
+        return false;
     }
 
     public function create(User $user): bool
     {
-        return $user->can(
-            Permission::MembersCreate->value
-        );
+        return false;
     }
 
     public function manageDepartments(
@@ -83,5 +80,18 @@ class MemberPolicy
         return $user->can(
             Permission::MembersFunctionsManage->value
         );
+    }
+
+    public function viewAny(User $user): bool
+    {
+        return $user->can(
+            Permission::MembersView->value
+        );
+    }
+
+    public function deleteAny(
+        User $user,
+    ): bool {
+        return false;
     }
 }
