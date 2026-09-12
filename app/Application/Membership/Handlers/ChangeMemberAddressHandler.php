@@ -13,8 +13,7 @@ final readonly class ChangeMemberAddressHandler
 {
     public function __construct(
         private AuditLogger $audit,
-    ) {
-    }
+    ) {}
 
     public function handle(
         ChangeMemberAddress $command,

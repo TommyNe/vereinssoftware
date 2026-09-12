@@ -13,8 +13,7 @@ final readonly class AuditLogger
     public function __construct(
         private CurrentClub $currentClub,
         private Request $request,
-    ) {
-    }
+    ) {}
 
     public function log(
         AuditAction $action,
@@ -32,17 +31,13 @@ final readonly class AuditLogger
                     ? $this->currentClub->id()
                     : null,
 
-                'ip_address' =>
-                    $this->request->ip(),
+                'ip_address' => $this->request->ip(),
 
-                'user_agent' =>
-                    $this->request->userAgent(),
+                'user_agent' => $this->request->userAgent(),
 
-                'method' =>
-                    $this->request->method(),
+                'method' => $this->request->method(),
 
-                'path' =>
-                    $this->request->path(),
+                'path' => $this->request->path(),
 
                 ...$properties,
             ]);

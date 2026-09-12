@@ -25,11 +25,17 @@ class Club extends Model
         'city',
     ];
 
+    /**
+     * @return HasMany<Member, $this>
+     */
     public function members(): HasMany
     {
         return $this->hasMany(Member::class);
     }
 
+    /**
+     * @return BelongsToMany<User, $this>
+     */
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(

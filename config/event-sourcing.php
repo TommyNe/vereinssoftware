@@ -1,10 +1,10 @@
 <?php
 
+use App\Infrastructure\EventSourcing\StoredEvent;
 use Spatie\EventSourcing\EventSerializers\JsonEventSerializer;
 use Spatie\EventSourcing\Snapshots\EloquentSnapshot;
 use Spatie\EventSourcing\Snapshots\EloquentSnapshotRepository;
 use Spatie\EventSourcing\StoredEvents\HandleStoredEventJob;
-use Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent;
 use Spatie\EventSourcing\StoredEvents\Repositories\EloquentStoredEventRepository;
 use Spatie\EventSourcing\Support\CarbonNormalizer;
 use Spatie\EventSourcing\Support\ModelIdentifierNormalizer;
@@ -64,7 +64,7 @@ return [
      * To add extra behaviour you can change this to a class of your own. It should
      * extend the \Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent model.
      */
-    'stored_event_model' => EloquentStoredEvent::class,
+    'stored_event_model' => StoredEvent::class,
 
     /*
      * This class is responsible for storing events. To add extra behaviour you

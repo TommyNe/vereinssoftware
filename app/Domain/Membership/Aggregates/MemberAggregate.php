@@ -30,13 +30,7 @@ final class MemberAggregate extends AggregateRoot
 {
     private bool $registered = false;
 
-    private ?string $clubId = null;
-
-    private ?string $memberNumber = null;
-
     private ?string $membershipTypeId = null;
-
-    private array $functionIds = [];
 
     /**
      * @var array<string, string>
@@ -51,8 +45,6 @@ final class MemberAggregate extends AggregateRoot
      * @var array<string, true>
      */
     private array $departmentIds = [];
-
-    private ?string $leftAt = null;
 
     private ?string $firstName = null;
 
@@ -412,9 +404,6 @@ final class MemberAggregate extends AggregateRoot
     ): void {
         $this->registered = true;
 
-        $this->clubId = $event->clubId;
-        $this->memberNumber = $event->memberNumber;
-
         $this->firstName = $event->firstName;
         $this->lastName = $event->lastName;
         $this->birthDate = $event->birthDate;
@@ -460,14 +449,12 @@ final class MemberAggregate extends AggregateRoot
         MemberReactivated $event,
     ): void {
         $this->status = MembershipStatus::Active;
-        $this->leftAt = null;
     }
 
     protected function applyMemberLeftClub(
         MemberLeftClub $event,
     ): void {
         $this->status = MembershipStatus::Left;
-        $this->leftAt = $event->leftAt;
     }
 
     protected function applyMembershipTypeChanged(

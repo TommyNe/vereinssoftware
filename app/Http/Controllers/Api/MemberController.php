@@ -91,7 +91,7 @@ final class MemberController extends Controller
 
         $handler->handle(
             new ChangeMemberAddress(
-                memberId: $readModel->id,
+                memberId: $readModel->uuid,
                 street: $request
                     ->string('street')
                     ->trim()
@@ -137,7 +137,7 @@ final class MemberController extends Controller
 
         $handler->handle(
             new ChangeMemberContactData(
-                memberId: $readModel->id,
+                memberId: $readModel->uuid,
                 email: $data['email'] ?? null,
                 phone: $data['phone'] ?? null,
                 mobile: $data['mobile'] ?? null,
@@ -164,7 +164,7 @@ final class MemberController extends Controller
 
         $handler->handle(
             new ChangeMemberPersonalData(
-                memberId: $readModel->id,
+                memberId: $readModel->uuid,
                 firstName: $data['first_name'],
                 lastName: $data['last_name'],
                 birthDate: $data['birth_date'] ?? null,
@@ -191,7 +191,7 @@ final class MemberController extends Controller
 
         $handler->handle(
             new ChangeMembershipType(
-                memberId: $readModel->id,
+                memberId: $readModel->uuid,
                 membershipTypeId: $data['membership_type_id'],
             )
         );
@@ -277,7 +277,7 @@ final class MemberController extends Controller
 
         $handler->handle(
             new AssignMemberFunction(
-                memberId: $readModel->id,
+                memberId: $readModel->uuid,
 
                 clubFunctionId: $data['club_function_id'],
 
@@ -310,7 +310,7 @@ final class MemberController extends Controller
 
         $handler->handle(
             new EndMemberFunction(
-                memberId: $readModel->id,
+                memberId: $readModel->uuid,
 
                 clubFunctionId: $clubFunction,
 

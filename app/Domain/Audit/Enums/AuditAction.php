@@ -9,44 +9,44 @@ enum AuditAction: string
     case MemberRegistered = 'member.registered';
 
     case MemberAddressChanged =
-    'member.address.changed';
+        'member.address.changed';
 
     case MemberContactDataChanged =
-    'member.contact-data.changed';
+        'member.contact-data.changed';
 
     case MemberPersonalDataChanged =
-    'member.personal-data.changed';
+        'member.personal-data.changed';
 
     case MembershipTypeChanged =
-    'member.membership-type.changed';
+        'member.membership-type.changed';
 
     case MemberSuspended =
-    'member.suspended';
+        'member.suspended';
 
     case MemberReactivated =
-    'member.reactivated';
+        'member.reactivated';
 
     case MemberLeftClub =
-    'member.left-club';
+        'member.left-club';
 
     case DepartmentJoined =
-    'member.department.joined';
+        'member.department.joined';
 
     case DepartmentLeft =
-    'member.department.left';
+        'member.department.left';
 
     case FunctionAssigned =
-    'member.function.assigned';
+        'member.function.assigned';
 
     case FunctionEnded =
-    'member.function.ended';
+        'member.function.ended';
 
     case MembersExported =
-    'members.exported';
+        'members.exported';
 
     case DocumentViewed =
-    'member.document.viewed';
+        'member.document.viewed';
 
     case DocumentDownloaded =
-    'member.document.downloaded';
+        'member.document.downloaded';
 }

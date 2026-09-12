@@ -8,6 +8,8 @@ enum Permission: string
     case MembersCreate = 'members.create';
     case MembersUpdate = 'members.update';
     case MembersDelete = 'members.delete';
+    case AuditView = 'audit.view';
+    case SecurityAuditView = 'security.audit.view';
     case MembersDepartmentsManage = 'members.departments.manage';
     case MembersFunctionsManage = 'members.functions.manage';
     case MembersPersonalDataView = 'members.personal-data.view';

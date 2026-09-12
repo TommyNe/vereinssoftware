@@ -46,6 +46,8 @@ class User extends Authenticatable
 
     /**
      * The clubs that the user belongs to.
+     *
+     * @return BelongsToMany<Club, $this>
      */
     public function clubs(): BelongsToMany
     {
