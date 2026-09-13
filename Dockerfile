@@ -64,6 +64,9 @@ COPY --from=php-deps /app/vendor ./vendor
 # Compiled Vite assets
 COPY --from=frontend /app/public/build ./public/build
 
+RUN php artisan filament:assets \
+    && php artisan optimize:clear
+
 # Laravel runtime directories
 RUN mkdir -p \
         storage/framework/cache \
