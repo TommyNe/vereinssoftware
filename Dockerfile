@@ -10,7 +10,8 @@ COPY composer.json composer.lock ./
 
 RUN composer install \
     --optimize-autoloader \
-    --no-scripts
+    --no-scripts \
+    --ignore-platform-reqs
 
 
 # =========================================================
@@ -46,6 +47,7 @@ RUN addgroup -g ${USER_GID} web && \
 RUN install-php-extensions \
     pdo_pgsql \
     redis \
+    intl \
     exif \
     pcntl \
     bcmath \
