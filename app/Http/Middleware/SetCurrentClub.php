@@ -14,8 +14,7 @@ final readonly class SetCurrentClub
 {
     public function __construct(
         private CurrentClub $currentClub,
-    ) {
-    }
+    ) {}
 
     public function handle(
         Request $request,

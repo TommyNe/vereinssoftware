@@ -39,14 +39,11 @@ final class ChangeContactDataAction
                 static fn (
                     Member $record
                 ): array => [
-                    'email' =>
-                        $record->email,
+                    'email' => $record->email,
 
-                    'phone' =>
-                        $record->phone,
+                    'phone' => $record->phone,
 
-                    'mobile' =>
-                        $record->mobile,
+                    'mobile' => $record->mobile,
                 ]
             )
 
@@ -83,23 +80,19 @@ final class ChangeContactDataAction
 
                     $handler->handle(
                         new ChangeMemberContactData(
-                            memberId:
-                            (string) $record->getKey(),
+                            memberId: (string) $record->getKey(),
 
-                            email:
-                            self::nullableString(
+                            email: self::nullableString(
                                 $data['email']
                                 ?? null
                             ),
 
-                            phone:
-                            self::nullableString(
+                            phone: self::nullableString(
                                 $data['phone']
                                 ?? null
                             ),
 
-                            mobile:
-                            self::nullableString(
+                            mobile: self::nullableString(
                                 $data['mobile']
                                 ?? null
                             ),

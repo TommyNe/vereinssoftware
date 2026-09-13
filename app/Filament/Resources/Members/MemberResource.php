@@ -5,14 +5,12 @@ namespace App\Filament\Resources\Members;
 use App\Domain\Membership\Models\Member;
 use App\Filament\Resources\Members\Pages\ListMembers;
 use App\Filament\Resources\Members\Pages\ViewMember;
-use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\Members\Schemas\MemberInfolist;
 use App\Filament\Resources\Members\Tables\MembersTable;
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class MemberResource extends Resource
 {
@@ -29,6 +27,7 @@ class MemberResource extends Resource
 
     protected static ?string $recordTitleAttribute =
         'full_name';
+
     public static function table(
         Table $table,
     ): Table {

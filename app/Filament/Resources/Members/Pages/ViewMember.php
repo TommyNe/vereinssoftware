@@ -6,7 +6,6 @@ use App\Filament\Resources\Members\Actions\ChangeAddressAction;
 use App\Filament\Resources\Members\Actions\ChangeContactDataAction;
 use App\Filament\Resources\Members\Actions\ChangePersonalDataAction;
 use App\Filament\Resources\Members\MemberResource;
-use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewMember extends ViewRecord

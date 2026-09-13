@@ -40,20 +40,15 @@ final class ChangeAddressAction
                 static fn (
                     Member $record
                 ): array => [
-                    'street' =>
-                        $record->street,
+                    'street' => $record->street,
 
-                    'house_number' =>
-                        $record->house_number,
+                    'house_number' => $record->house_number,
 
-                    'postal_code' =>
-                        $record->postal_code,
+                    'postal_code' => $record->postal_code,
 
-                    'city' =>
-                        $record->city,
+                    'city' => $record->city,
 
-                    'country_code' =>
-                        $record->country_code
+                    'country_code' => $record->country_code
                         ?? 'DE',
                 ]
             )
@@ -96,11 +91,10 @@ final class ChangeAddressAction
                             ->formatStateUsing(
                                 static fn (
                                     ?string $state
-                                ): ?string =>
-                                $state !== null
+                                ): ?string => $state !== null
                                     ? strtoupper(
-                                    $state
-                                )
+                                        $state
+                                    )
                                     : null
                             ),
                     ]),
@@ -119,35 +113,29 @@ final class ChangeAddressAction
 
                     $handler->handle(
                         new ChangeMemberAddress(
-                            memberId:
-                            (string) $record->getKey(),
+                            memberId: (string) $record->getKey(),
 
-                            street:
-                            trim(
+                            street: trim(
                                 $data['street']
                             ),
 
-                            houseNumber:
-                            trim(
+                            houseNumber: trim(
                                 $data[
                                 'house_number'
                                 ]
                             ),
 
-                            postalCode:
-                            trim(
+                            postalCode: trim(
                                 $data[
                                 'postal_code'
                                 ]
                             ),
 
-                            city:
-                            trim(
+                            city: trim(
                                 $data['city']
                             ),
 
-                            countryCode:
-                            strtoupper(
+                            countryCode: strtoupper(
                                 trim(
                                     $data[
                                     'country_code'

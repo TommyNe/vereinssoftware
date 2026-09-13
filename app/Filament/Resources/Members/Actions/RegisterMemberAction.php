@@ -6,7 +6,6 @@ use App\Application\Club\CurrentClub;
 use App\Application\Membership\Commands\RegisterMember;
 use App\Application\Membership\Handlers\RegisterMemberHandler;
 use App\Domain\Identity\Enums\Permission;
-use App\Domain\Membership\Models\Member;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Filament\Actions\Action;
@@ -89,15 +88,14 @@ final class RegisterMemberAction
                             ->maxDate(now())
                             ->nullable(),
 
-
                     ])->columns(2),
             ])
             ->action(
                 static function (
-                    array                 $data,
+                    array $data,
                     RegisterMemberHandler $handler,
                 ): void {
-                    $memberId = (string)Str::uuid();
+                    $memberId = (string) Str::uuid();
                     $handler->handle(
                         new RegisterMember(
                             memberId: $memberId,

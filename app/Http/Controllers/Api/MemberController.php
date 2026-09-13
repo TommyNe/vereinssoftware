@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Application\Club\CurrentClub;
 use App\Application\Membership\Commands\AssignMemberFunction;
 use App\Application\Membership\Commands\ChangeMemberAddress;
 use App\Application\Membership\Commands\ChangeMemberContactData;

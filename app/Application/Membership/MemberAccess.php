@@ -10,8 +10,7 @@ final readonly class MemberAccess
 {
     public function __construct(
         private CurrentClub $currentClub,
-    ) {
-    }
+    ) {}
 
     public function ensureInCurrentClub(
         string $memberId,

@@ -11,8 +11,8 @@ final readonly class RegisterMemberHandler
 {
     public function __construct(
         private CurrentClub $currentClub,
-    ) {
-    }
+    ) {}
+
     public function handle(RegisterMember $command): void
     {
         MemberAggregate::retrieve($command->memberId)

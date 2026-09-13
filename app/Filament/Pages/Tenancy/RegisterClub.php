@@ -7,9 +7,7 @@ use App\Domain\Identity\Enums\Role;
 use App\Models\User;
 use Filament\Forms\Components\TextInput;
 use Filament\Pages\Tenancy\RegisterTenant;
-use Spatie\Permission\Models\Role as SpatieRole;
 use Filament\Schemas\Schema;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Throwable;
@@ -76,8 +74,7 @@ final class RegisterClub extends RegisterTenant
 
                 $club = Club::query()->create([
                     'name' => $data['name'],
-                    'short_name' =>
-                        $data['short_name'] ?? null,
+                    'short_name' => $data['short_name'] ?? null,
                 ]);
 
                 $user

@@ -41,14 +41,11 @@ final class ChangePersonalDataAction
                 static fn (
                     Member $record
                 ): array => [
-                    'first_name' =>
-                        $record->first_name,
+                    'first_name' => $record->first_name,
 
-                    'last_name' =>
-                        $record->last_name,
+                    'last_name' => $record->last_name,
 
-                    'birth_date' =>
-                        $record->birth_date,
+                    'birth_date' => $record->birth_date,
                 ]
             )
 
@@ -83,29 +80,25 @@ final class ChangePersonalDataAction
 
                     $handler->handle(
                         new ChangeMemberPersonalData(
-                            memberId:
-                            (string) $record->getKey(),
+                            memberId: (string) $record->getKey(),
 
-                            firstName:
-                            trim(
+                            firstName: trim(
                                 $data['first_name']
                             ),
 
-                            lastName:
-                            trim(
+                            lastName: trim(
                                 $data['last_name']
                             ),
 
-                            birthDate:
-                            filled(
+                            birthDate: filled(
                                 $data['birth_date']
                                 ?? null
                             )
                                 ? CarbonImmutable::parse(
-                                $data[
-                                'birth_date'
-                                ]
-                            )
+                                    $data[
+                                    'birth_date'
+                                    ]
+                                )
                                 : null,
                         )
                     );

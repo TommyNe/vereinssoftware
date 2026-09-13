@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Domain\Identity\Enums\Role as RoleEnum;
 use App\Domain\Identity\Enums\Permission;
+use App\Domain\Identity\Enums\Role as RoleEnum;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -18,8 +18,7 @@ final class RoleSeeder extends Seeder
 
         $administrator = Role::query()
             ->firstOrCreate([
-                'name' =>
-                    RoleEnum::Administrator->value,
+                'name' => RoleEnum::Administrator->value,
                 'guard_name' => 'web',
                 'club_id' => null,
             ]);
@@ -28,8 +27,7 @@ final class RoleSeeder extends Seeder
             array_map(
                 static fn (
                     Permission $permission
-                ): string =>
-                $permission->value,
+                ): string => $permission->value,
                 Permission::cases(),
             )
         );

@@ -39,8 +39,7 @@ final class Member extends Projection
     }
 
     /**
-     * @param Builder<Member> $query
-     *
+     * @param  Builder<Member>  $query
      * @return Builder<Member>
      */
     public function scopeForCurrentClub(
@@ -140,5 +139,4 @@ final class Member extends Projection
             ),
         );
     }
-
 }

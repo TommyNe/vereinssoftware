@@ -11,8 +11,7 @@ final readonly class MemberPolicy
 {
     public function __construct(
         private CurrentClub $currentClub,
-    ) {
-    }
+    ) {}
 
     public function viewAny(
         User $user,
@@ -106,14 +105,14 @@ final readonly class MemberPolicy
         );
     }
 
-//    private function belongsToCurrentClub(
-//        Member $member,
-//    ): bool {
-//        if (! $this->currentClub->hasClub()) {
-//            return false;
-//        }
-//
-//        return (string) $member->club_id ===
-//            $this->currentClub->id();
-//    }
+    //    private function belongsToCurrentClub(
+    //        Member $member,
+    //    ): bool {
+    //        if (! $this->currentClub->hasClub()) {
+    //            return false;
+    //        }
+    //
+    //        return (string) $member->club_id ===
+    //            $this->currentClub->id();
+    //    }
 }
