@@ -4,6 +4,7 @@ namespace App\Domain\Identity\Enums;
 
 enum Permission: string
 {
+    case Administrator = 'administrator';
     case MembersView = 'members.view';
     case MembersCreate = 'members.create';
     case MembersUpdate = 'members.update';

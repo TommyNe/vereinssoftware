@@ -7,6 +7,7 @@ use App\Domain\Identity\Enums\Role;
 use App\Models\User;
 use Filament\Forms\Components\TextInput;
 use Filament\Pages\Tenancy\RegisterTenant;
+use Spatie\Permission\Models\Role as SpatieRole;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -88,6 +89,17 @@ final class RegisterClub extends RegisterTenant
 
                 $user->unsetRelation('roles');
                 $user->unsetRelation('permissions');
+
+                $role = SpatieRole::query()
+                    ->where('name', 'administrator')
+                    ->where('guard_name', 'web')
+                    ->first();
+
+                if (! $role) {
+                    throw new RuntimeException(
+                        'Administrator-Rolle nicht gefunden.'
+                    );
+                }
 
                 $user->assignRole(
                     Role::Administrator->value

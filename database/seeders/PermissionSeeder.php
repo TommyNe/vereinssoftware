@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Domain\Identity\Enums\Permission as PermissionEnum;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 class PermissionSeeder extends Seeder
@@ -19,6 +20,12 @@ class PermissionSeeder extends Seeder
         foreach (PermissionEnum::cases() as $permission) {
             Permission::findOrCreate($permission->value, 'web');
         }
+
+        Role::query()->firstOrCreate([
+            'name' => 'administrator',
+            'guard_name' => 'web',
+            'club_id' => null,
+        ]);
 
         app(PermissionRegistrar::class)
             ->forgetCachedPermissions();
