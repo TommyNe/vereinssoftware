@@ -8,6 +8,7 @@ use App\Domain\Membership\Models\Member;
 use App\Policies\ClubPolicy;
 use App\Policies\MemberPolicy;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -27,6 +28,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
+
         Gate::policy(
             Member::class,
             MemberPolicy::class,
