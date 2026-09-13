@@ -63,7 +63,7 @@ final class RegisterClub extends RegisterTenant
      */
     protected function handleRegistration(
         array $data,
-    ): Model {
+    ): Club {
         return DB::transaction(
             function () use ($data): Club {
                 $user = auth()->user();
@@ -74,8 +74,11 @@ final class RegisterClub extends RegisterTenant
                     );
                 }
 
-                $club = Club::query()
-                    ->create($data);
+                $club = Club::query()->create([
+                    'name' => $data['name'],
+                    'short_name' =>
+                        $data['short_name'] ?? null,
+                ]);
 
                 $user
                     ->clubs()
@@ -89,17 +92,6 @@ final class RegisterClub extends RegisterTenant
 
                 $user->unsetRelation('roles');
                 $user->unsetRelation('permissions');
-
-                $role = SpatieRole::query()
-                    ->where('name', 'administrator')
-                    ->where('guard_name', 'web')
-                    ->first();
-
-                if (! $role) {
-                    throw new RuntimeException(
-                        'Administrator-Rolle nicht gefunden.'
-                    );
-                }
 
                 $user->assignRole(
                     Role::Administrator->value

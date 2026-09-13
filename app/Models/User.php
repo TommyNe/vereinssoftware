@@ -50,25 +50,25 @@ class User extends Authenticatable implements FilamentUser, HasTenants
     }
 
     /**
-     * The clubs that the user belongs to.
-     *
      * @return BelongsToMany<Club, $this>
      */
     public function clubs(): BelongsToMany
     {
         return $this->belongsToMany(
             Club::class,
-            'club_user'
-        )->withTimestamps();
+            'club_user',
+        );
     }
 
-    public function getTenants(Panel $panel): array|Collection
-    {
+    public function getTenants(
+        Panel $panel,
+    ): Collection {
         return $this->clubs;
     }
 
-    public function canAccessTenant(Model $tenant): bool
-    {
+    public function canAccessTenant(
+        Model $tenant,
+    ): bool {
         if (! $tenant instanceof Club) {
             return false;
         }
@@ -79,8 +79,9 @@ class User extends Authenticatable implements FilamentUser, HasTenants
             ->exists();
     }
 
-    public function canAccessPanel(Panel $panel): bool
-    {
-        return $this->hasVerifiedEmail();
+    public function canAccessPanel(
+        Panel $panel,
+    ): bool {
+        return true;
     }
 }

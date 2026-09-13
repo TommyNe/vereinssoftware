@@ -41,14 +41,12 @@ final class MemberController extends Controller
     public function store(
         RegisterMemberRequest $request,
         RegisterMemberHandler $handler,
-        CurrentClub $currentClub
     ): JsonResponse {
         $memberId = (string) Str::uuid();
 
         $handler->handle(
             new RegisterMember(
                 memberId: $memberId,
-                clubId: $currentClub->id(),
                 memberNumber: $request
                     ->string('member_number')
                     ->toString(),

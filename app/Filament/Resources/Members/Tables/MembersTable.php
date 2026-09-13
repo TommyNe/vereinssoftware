@@ -2,62 +2,80 @@
 
 namespace App\Filament\Resources\Members\Tables;
 
-use App\Domain\Membership\Enums\MembershipStatus;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
-final class MembersTable
+class MembersTable
 {
-    public static function configure(
-        Table $table,
-    ): Table {
+    public static function configure(Table $table): Table
+    {
         return $table
             ->columns([
+                TextColumn::make('uuid')
+                    ->label('UUID'),
+                TextColumn::make('club.name')
+                    ->searchable(),
                 TextColumn::make('member_number')
-                    ->label('Mitgliedsnummer')
-                    ->searchable()
-                    ->sortable(),
-
-                TextColumn::make('last_name')
-                    ->label('Nachname')
-                    ->searchable()
-                    ->sortable(),
-
+                    ->searchable(),
                 TextColumn::make('first_name')
-                    ->label('Vorname')
-                    ->searchable()
-                    ->sortable(),
-
+                    ->searchable(),
+                TextColumn::make('last_name')
+                    ->searchable(),
                 TextColumn::make('birth_date')
-                    ->label('Geburtsdatum')
-                    ->date('d.m.Y')
+                    ->date()
                     ->sortable(),
-
-                TextColumn::make('membershipType.name')
-                    ->label('Mitgliedsart')
-                    ->placeholder('–'),
-
+                TextColumn::make('email')
+                    ->label('Email address')
+                    ->searchable(),
+                TextColumn::make('phone')
+                    ->searchable(),
                 TextColumn::make('status')
-                    ->label('Status')
                     ->badge()
-                    ->formatStateUsing(
-                        fn (MembershipStatus $state): string => match ($state) {
-                            MembershipStatus::Active => 'Aktiv',
-
-                            MembershipStatus::Suspended => 'Gesperrt',
-
-                            MembershipStatus::Left => 'Ausgetreten',
-                        }
-                    ),
-
+                    ->searchable(),
                 TextColumn::make('joined_at')
-                    ->label('Eintritt')
-                    ->date('d.m.Y')
+                    ->date()
                     ->sortable(),
+                TextColumn::make('left_at')
+                    ->date()
+                    ->sortable(),
+                TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('street')
+                    ->searchable(),
+                TextColumn::make('house_number')
+                    ->searchable(),
+                TextColumn::make('postal_code')
+                    ->searchable(),
+                TextColumn::make('city')
+                    ->searchable(),
+                TextColumn::make('country_code')
+                    ->searchable(),
+                TextColumn::make('mobile')
+                    ->searchable(),
+                TextColumn::make('membershipType.name')
+                    ->searchable(),
+            ])
+            ->filters([
+                //
             ])
             ->recordActions([
                 ViewAction::make(),
+                EditAction::make(),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
             ]);
     }
 }

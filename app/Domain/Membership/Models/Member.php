@@ -38,10 +38,21 @@ final class Member extends Projection
         return MemberFactory::new();
     }
 
+    /**
+     * @param Builder<Member> $query
+     *
+     * @return Builder<Member>
+     */
     public function scopeForCurrentClub(
         Builder $query
     ): Builder {
-        $currentClub = app(CurrentClub::class);
+        $currentClub = app(
+            CurrentClub::class
+        );
+
+        if (! $currentClub->hasClub()) {
+            return $query->whereRaw('1 = 0');
+        }
 
         return $query->where(
             'club_id',
@@ -116,6 +127,9 @@ final class Member extends Projection
     }
 
     /**
+     * @property string $id
+     * @property string $first_name
+     * @property string $last_name
      * @property-read string $full_name
      */
     protected function fullName(): Attribute
@@ -126,4 +140,5 @@ final class Member extends Projection
             ),
         );
     }
+
 }

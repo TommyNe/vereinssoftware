@@ -8,7 +8,6 @@ final readonly class RegisterMember
 {
     public function __construct(
         public string $memberId,
-        public string $clubId,
         public string $memberNumber,
         public string $firstName,
         public string $lastName,

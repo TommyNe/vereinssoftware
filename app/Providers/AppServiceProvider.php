@@ -4,7 +4,9 @@ namespace App\Providers;
 
 use App\Application\Club\CurrentClub;
 use App\Domain\Club\Models\Club;
+use App\Domain\Membership\Models\Member;
 use App\Policies\ClubPolicy;
+use App\Policies\MemberPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -25,6 +27,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::policy(
+            Member::class,
+            MemberPolicy::class,
+        );
+
         Gate::policy(
             Club::class,
             ClubPolicy::class,

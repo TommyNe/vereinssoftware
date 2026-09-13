@@ -13,6 +13,7 @@ use App\Domain\Membership\Events\MemberLeftClub;
 use App\Domain\Membership\Events\MemberLeftDepartment;
 use App\Domain\Membership\Events\MemberPersonalDataChanged;
 use App\Domain\Membership\Events\MemberReactivated;
+use App\Domain\Membership\Events\MemberRegistered;
 use App\Domain\Membership\Events\MembershipTypeChanged;
 use App\Domain\Membership\Events\MemberSuspended;
 use App\Domain\Membership\Models\Member;
@@ -31,6 +32,15 @@ final class MemberAuditReactor extends Reactor
         $this->log(
             $event,
             AuditAction::MemberAddressChanged,
+        );
+    }
+
+    public function onMemberRegistered(
+        MemberRegistered $event,
+    ): void {
+        $this->log(
+            $event,
+            AuditAction::MemberRegistered,
         );
     }
 

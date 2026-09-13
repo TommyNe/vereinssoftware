@@ -21,11 +21,7 @@ class PermissionSeeder extends Seeder
             Permission::findOrCreate($permission->value, 'web');
         }
 
-        Role::query()->firstOrCreate([
-            'name' => 'administrator',
-            'guard_name' => 'web',
-            'club_id' => null,
-        ]);
+
 
         app(PermissionRegistrar::class)
             ->forgetCachedPermissions();

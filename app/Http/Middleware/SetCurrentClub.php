@@ -14,7 +14,8 @@ final readonly class SetCurrentClub
 {
     public function __construct(
         private CurrentClub $currentClub,
-    ) {}
+    ) {
+    }
 
     public function handle(
         Request $request,
@@ -27,78 +28,70 @@ final readonly class SetCurrentClub
         }
 
         /*
-         * 1. Filament-Tenant hat Priorität.
-         *
-         * Innerhalb eines tenantfähigen Filament-Panels liefert
-         * Filament::getTenant() den aktuell ausgewählten Club.
+         * Filament-Tenant verwenden,
+         * sobald Filament ihn aufgelöst hat.
          */
-        $filamentTenant = Filament::getTenant();
+        $tenant = Filament::getTenant();
 
-        if ($filamentTenant instanceof Club) {
+        if ($tenant instanceof Club) {
             $this->activateClub(
                 user: $user,
-                club: $filamentTenant,
+                club: $tenant,
             );
 
             return $next($request);
         }
 
         /*
-         * 2. Außerhalb von Filament verwenden wir weiterhin
-         * den bisherigen Session-basierten Club-Kontext.
+         * Außerhalb von Filament:
+         * bisheriger API-/Session-Flow.
          */
         $clubId = $request
             ->session()
             ->get('current_club_id');
 
-        /*
-         * Benutzer ohne Verein sind erlaubt.
-         *
-         * Das ist wichtig für den neuen Filament-Onboarding-Flow:
-         * Login -> Verein anlegen.
-         */
-        if ($clubId === null) {
+        if ($clubId !== null) {
             $club = $user
                 ->clubs()
+                ->whereKey($clubId)
                 ->first();
 
-            if (! $club instanceof Club) {
+            if ($club instanceof Club) {
+                $this->activateClub(
+                    user: $user,
+                    club: $club,
+                );
+
                 return $next($request);
             }
 
-            $clubId = (string) $club->getKey();
-
             $request
                 ->session()
-                ->put(
-                    'current_club_id',
-                    $clubId,
+                ->forget(
+                    'current_club_id'
                 );
         }
 
         /*
-         * Sicherheitsprüfung:
-         *
-         * Niemals einfach Club::find($clubId) verwenden.
-         *
-         * Der Club muss tatsächlich dem angemeldeten
-         * Benutzer zugeordnet sein.
+         * Fallback auf den ersten Club.
          */
         $club = $user
             ->clubs()
-            ->whereKey($clubId)
             ->first();
 
         if (! $club instanceof Club) {
             /*
-             * Ungültiger/veralteter Club in der Session.
+             * Kein Club ist beim Onboarding erlaubt.
              */
-            $request
-                ->session()
-                ->forget('current_club_id');
-
             return $next($request);
         }
+
+        $request
+            ->session()
+            ->put(
+                'current_club_id',
+                $club->getKey()
+            );
 
         $this->activateClub(
             user: $user,
@@ -112,26 +105,16 @@ final readonly class SetCurrentClub
         User $user,
         Club $club,
     ): void {
-        /*
-         * Unsere bestehende Application-Schicht.
-         */
-        $this->currentClub->set($club);
+        $this->currentClub->set(
+            $club
+        );
 
-        /*
-         * Spatie Permission Teams:
-         * Der Club ist unser Team.
-         */
         setPermissionsTeamId(
             $club->getKey()
         );
 
-        /*
-         * Sehr wichtig nach einem Team-Wechsel.
-         *
-         * Sonst könnten Rollen/Permissions aus dem vorherigen
-         * Club noch im geladenen Eloquent Model vorhanden sein.
-         */
-        $user->unsetRelation('roles');
-        $user->unsetRelation('permissions');
+        $user
+            ->unsetRelation('roles')
+            ->unsetRelation('permissions');
     }
 }

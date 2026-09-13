@@ -5,7 +5,7 @@ namespace App\Filament\Resources\Members;
 use App\Domain\Membership\Models\Member;
 use App\Filament\Resources\Members\Pages\ListMembers;
 use App\Filament\Resources\Members\Pages\ViewMember;
-use App\Filament\Resources\Members\Schemas\MemberForm;
+use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\Members\Schemas\MemberInfolist;
 use App\Filament\Resources\Members\Tables\MembersTable;
 use BackedEnum;
@@ -13,29 +13,32 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 class MemberResource extends Resource
 {
     protected static ?string $model = Member::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static ?string $modelLabel = 'Mitglied';
 
-    protected static ?string $recordTitleAttribute = 'full_name';
+    protected static ?string $pluralModelLabel = 'Mitglieder';
 
-    public static function form(Schema $schema): Schema
-    {
-        return MemberForm::configure($schema);
-    }
+    protected static ?string $navigationLabel = 'Mitglieder';
 
-    public static function infolist(Schema $schema): Schema
-    {
-        return MemberInfolist::configure($schema);
-    }
+    protected static string|\BackedEnum|null $navigationIcon =
+        'heroicon-o-user-group';
 
-    public static function table(Table $table): Table
-    {
+    protected static ?string $recordTitleAttribute =
+        'full_name';
+    public static function table(
+        Table $table,
+    ): Table {
         return MembersTable::configure($table);
+    }
+
+    public static function infolist(
+        Schema $schema,
+    ): Schema {
+        return MemberInfolist::configure($schema);
     }
 
     /**
@@ -47,13 +50,6 @@ class MemberResource extends Resource
         $query = parent::getEloquentQuery();
 
         return $query->forCurrentClub();
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array
