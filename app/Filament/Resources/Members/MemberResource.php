@@ -48,7 +48,13 @@ class MemberResource extends Resource
         /** @var Builder<Member> $query */
         $query = parent::getEloquentQuery();
 
-        return $query->forCurrentClub();
+        return $query
+            ->forCurrentClub()
+            ->with([
+                'membershipType',
+                'departments',
+                'activeFunctionAssignments.clubFunction',
+            ]);
     }
 
     public static function getPages(): array

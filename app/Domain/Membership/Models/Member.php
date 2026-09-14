@@ -5,6 +5,7 @@ namespace App\Domain\Membership\Models;
 use App\Application\Club\CurrentClub;
 use App\Domain\Club\Models\Club;
 use App\Domain\Membership\Enums\MembershipStatus;
+use Carbon\CarbonImmutable;
 use Database\Factories\Domain\Membership\Models\MemberFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -14,6 +15,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\EventSourcing\Projections\Projection;
 
+/**
+ * @property string $id
+ * @property string $club_id
+ * @property string|null $membership_type_id
+ * @property string $first_name
+ * @property string $last_name
+ * @property MembershipStatus $status
+ * @property CarbonImmutable|null $birth_date
+ * @property CarbonImmutable|null $joined_at
+ * @property CarbonImmutable|null $left_at
+ * @property-read string $full_name
+ */
 final class Member extends Projection
 {
     use HasFactory;
@@ -91,14 +104,22 @@ final class Member extends Projection
         );
     }
 
+    /**
+     * @return HasMany<MemberFunction, $this>
+     */
     public function functionAssignments(): HasMany
     {
-        return $this->hasMany(
-            MemberFunction::class,
-            'member_id',
-        );
+        return $this
+            ->hasMany(
+                MemberFunction::class,
+                'member_id',
+            )
+            ->orderByDesc('valid_from');
     }
 
+    /**
+     * @return HasMany<MemberFunction, $this>
+     */
     public function activeFunctionAssignments(): HasMany
     {
         return $this
@@ -125,12 +146,6 @@ final class Member extends Projection
             ]);
     }
 
-    /**
-     * @property string $id
-     * @property string $first_name
-     * @property string $last_name
-     * @property-read string $full_name
-     */
     protected function fullName(): Attribute
     {
         return Attribute::make(

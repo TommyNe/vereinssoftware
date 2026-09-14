@@ -11,6 +11,7 @@ enum Permission: string
     case MembersDelete = 'members.delete';
     case AuditView = 'audit.view';
     case SecurityAuditView = 'security.audit.view';
+    case MembersMembershipManage = 'members.membership.manage';
     case MembersDepartmentsManage = 'members.departments.manage';
     case MembersFunctionsManage = 'members.functions.manage';
     case MembersPersonalDataView = 'members.personal-data.view';

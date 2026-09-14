@@ -2,10 +2,20 @@
 
 namespace App\Domain\Membership\Models;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\EventSourcing\Projections\Projection;
 
+/**
+ * @property string $id
+ * @property string $member_id
+ * @property string $club_function_id
+ * @property CarbonImmutable $valid_from
+ * @property CarbonImmutable|null $valid_until
+ * @property-read Member $member
+ * @property-read ClubFunction $clubFunction
+ */
 final class MemberFunction extends Projection
 {
     use HasUuids;

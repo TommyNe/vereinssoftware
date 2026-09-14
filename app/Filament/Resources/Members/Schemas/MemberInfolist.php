@@ -2,7 +2,10 @@
 
 namespace App\Filament\Resources\Members\Schemas;
 
+use App\Domain\Membership\Enums\MembershipStatus;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class MemberInfolist
@@ -11,6 +14,58 @@ class MemberInfolist
     {
         return $schema
             ->components([
+                Section::make('Abteilungen')
+                    ->schema([
+                        RepeatableEntry::make('departments')
+                            ->label('')
+                            ->schema([
+                                TextEntry::make('name')
+                                    ->label('Abteilung'),
+                            ])
+                            ->columns(1),
+                    ]),
+                Section::make('Vereinsfunktionen')
+                    ->schema([
+                        RepeatableEntry::make(
+                            'activeFunctionAssignments'
+                        )
+                            ->label('')
+                            ->schema([
+                                TextEntry::make(
+                                    'clubFunction.name'
+                                )
+                                    ->label('Funktion'),
+
+                                TextEntry::make('valid_from')
+                                    ->label('Seit')
+                                    ->date('d.m.Y'),
+                            ])
+                            ->columns(2),
+                    ]),
+                Section::make('Funktionshistorie')
+                    ->collapsed()
+                    ->schema([
+                        RepeatableEntry::make(
+                            'functionAssignments'
+                        )
+                            ->label('')
+                            ->schema([
+                                TextEntry::make(
+                                    'clubFunction.name'
+                                )
+                                    ->label('Funktion'),
+
+                                TextEntry::make('valid_from')
+                                    ->label('Von')
+                                    ->date('d.m.Y'),
+
+                                TextEntry::make('valid_until')
+                                    ->label('Bis')
+                                    ->date('d.m.Y')
+                                    ->placeholder('heute'),
+                            ])
+                            ->columns(3),
+                    ]),
                 TextEntry::make('uuid')
                     ->label('UUID'),
                 TextEntry::make('club.name')
@@ -27,12 +82,37 @@ class MemberInfolist
                 TextEntry::make('phone')
                     ->placeholder('-'),
                 TextEntry::make('status')
-                    ->badge(),
+                    ->label('Status')
+                    ->badge()
+                    ->formatStateUsing(
+                        static fn (
+                            MembershipStatus $state,
+                        ): string => match ($state) {
+                            MembershipStatus::Active => 'Aktiv',
+
+                            MembershipStatus::Suspended => 'Gesperrt',
+
+                            MembershipStatus::Left => 'Ausgetreten',
+                        }
+                    )
+                    ->color(
+                        static fn (
+                            MembershipStatus $state,
+                        ): string => match ($state) {
+                            MembershipStatus::Active => 'success',
+
+                            MembershipStatus::Suspended => 'warning',
+
+                            MembershipStatus::Left => 'danger',
+                        }
+                    ),
                 TextEntry::make('joined_at')
-                    ->date(),
+                    ->label('Eintritt')
+                    ->date('d.m.Y'),
                 TextEntry::make('left_at')
-                    ->date()
-                    ->placeholder('-'),
+                    ->label('Austritt')
+                    ->date('d.m.Y')
+                    ->placeholder('–'),
                 TextEntry::make('created_at')
                     ->dateTime()
                     ->placeholder('-'),
@@ -51,9 +131,11 @@ class MemberInfolist
                     ->placeholder('-'),
                 TextEntry::make('mobile')
                     ->placeholder('-'),
-                TextEntry::make('membershipType.name')
-                    ->label('Membership type')
-                    ->placeholder('-'),
+                TextEntry::make(
+                    'membershipType.name'
+                )
+                    ->label('Mitgliedsart')
+                    ->placeholder('Keine Mitgliedsart'),
             ]);
     }
 }

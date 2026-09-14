@@ -1310,5 +1310,12 @@ it(
                     ->toDateString()
             )
             ->toBe('2028-12-31');
+
+        $member = Member::query()->findOrFail($memberId);
+
+        expect($member->functionAssignments)
+            ->toHaveCount(1)
+            ->and($member->functionAssignments->first()->club_function_id)
+            ->toBe($function->id);
     }
 );

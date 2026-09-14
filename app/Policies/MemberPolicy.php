@@ -105,14 +105,44 @@ final readonly class MemberPolicy
         );
     }
 
-    //    private function belongsToCurrentClub(
-    //        Member $member,
-    //    ): bool {
-    //        if (! $this->currentClub->hasClub()) {
-    //            return false;
-    //        }
-    //
-    //        return (string) $member->club_id ===
-    //            $this->currentClub->id();
-    //    }
+    public function manageDepartments(
+        User $user,
+        Member $member,
+    ): bool {
+        return $this->belongsToCurrentClub($member)
+            && $user->can(
+                Permission::MembersDepartmentsManage->value
+            );
+    }
+
+    public function manageFunctions(
+        User $user,
+        Member $member,
+    ): bool {
+        return $this->belongsToCurrentClub($member)
+            && $user->can(
+                Permission::MembersFunctionsManage->value
+            );
+    }
+
+    public function manageMembership(
+        User $user,
+        Member $member,
+    ): bool {
+        return $this->belongsToCurrentClub($member)
+            && $user->can(
+                Permission::MembersMembershipManage->value
+            );
+    }
+
+    private function belongsToCurrentClub(
+        Member $member,
+    ): bool {
+        if (! $this->currentClub->hasClub()) {
+            return false;
+        }
+
+        return (string) $member->club_id ===
+            $this->currentClub->id();
+    }
 }
