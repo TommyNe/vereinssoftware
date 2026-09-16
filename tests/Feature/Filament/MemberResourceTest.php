@@ -1,5 +1,6 @@
 <?php
 
+use App\Application\Club\CurrentClub;
 use App\Domain\Club\Models\Club;
 use App\Domain\Identity\Enums\Permission;
 use App\Filament\Resources\Members\MemberResource;
@@ -46,7 +47,7 @@ test('filament admin members list page renders and register member action is acc
     $response->assertSee('Mitglieder');
 
     Filament::setTenant($club);
-    app(\App\Application\Club\CurrentClub::class)->set($club);
+    app(CurrentClub::class)->set($club);
 
     Livewire::actingAs($user)
         ->test(ListMembers::class)
@@ -81,7 +82,7 @@ test('user can register a new member via register member action wizard', functio
 
     $this->actingAs($user);
     Filament::setTenant($club);
-    app(\App\Application\Club\CurrentClub::class)->set($club);
+    app(CurrentClub::class)->set($club);
 
     Livewire::actingAs($user)
         ->test(ListMembers::class)

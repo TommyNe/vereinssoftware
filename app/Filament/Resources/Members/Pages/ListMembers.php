@@ -18,5 +18,5 @@ class ListMembers extends ListRecords
         ];
     }
 
-    protected Width | string | null $maxContentWidth = Width::Full;
+    protected Width|string|null $maxContentWidth = Width::Full;
 }
