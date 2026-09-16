@@ -76,4 +76,14 @@ class Club extends Model
             ClubFunction::class
         );
     }
+
+    /**
+     * @return HasMany<ClubInvitation, $this>
+     */
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(
+            ClubInvitation::class
+        );
+    }
 }

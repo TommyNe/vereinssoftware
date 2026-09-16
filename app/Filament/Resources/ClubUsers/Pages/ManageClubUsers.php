@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ClubUsers\Pages;
 
+use App\Application\Club\ClubInvitationManager;
 use App\Application\Club\ClubUserManager;
 use App\Domain\Identity\Enums\Permission;
 use App\Domain\Identity\Enums\Role;
@@ -21,6 +22,91 @@ class ManageClubUsers extends ManageRecords
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('inviteUser')
+                ->label('Benutzer einladen')
+                ->icon('heroicon-o-envelope')
+
+                ->visible(
+                    static fn (): bool => Auth::user()?->can(
+                        Permission::ClubUsersManage
+                            ->value
+                    ) ?? false
+                )
+
+                ->modalHeading(
+                    'Benutzer zum Verein einladen'
+                )
+
+                ->schema([
+                    TextInput::make('email')
+                        ->label('E-Mail-Adresse')
+                        ->email()
+                        ->required()
+                        ->maxLength(255),
+
+                    Select::make('role')
+                        ->label('Rolle')
+                        ->required()
+                        ->options(
+                            collect(
+                                Role::cases()
+                            )
+                                ->mapWithKeys(
+                                    static fn (
+                                        Role $role,
+                                    ): array => [
+                                        $role->value => $role->label(),
+                                    ]
+                                )
+                                ->all()
+                        ),
+                ])
+
+                ->action(
+                    static function (
+                        array $data,
+                        ClubInvitationManager $manager,
+                    ): void {
+                        $admin = Auth::user();
+
+                        abort_unless(
+                            $admin instanceof User
+                            && $admin->can(
+                                Permission::ClubUsersManage
+                                    ->value
+                            ),
+                            403,
+                        );
+
+                        $role = Role::tryFrom(
+                            (string) $data['role']
+                        );
+
+                        abort_if(
+                            $role === null,
+                            422,
+                            'Ungültige Rolle.'
+                        );
+
+                        $manager->create(
+                            email: (string) $data['email'],
+
+                            role: $role,
+
+                            invitedBy: $admin,
+                        );
+
+                        Notification::make()
+                            ->title(
+                                'Einladung versendet'
+                            )
+                            ->body(
+                                'Die Einladung wurde per E-Mail verschickt.'
+                            )
+                            ->success()
+                            ->send();
+                    }
+                ),
             Action::make('addUser')
                 ->label('Benutzer hinzufügen')
                 ->icon(

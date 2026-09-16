@@ -49,4 +49,16 @@ enum AuditAction: string
 
     case DocumentDownloaded =
         'member.document.downloaded';
+
+    case ClubUserInvited =
+        'club.user.invited';
+
+    case ClubUserAdded =
+        'club.user.added';
+
+    case ClubUserRemoved =
+        'club.user.removed';
+
+    case ClubUserRoleChanged =
+        'club.user.role-changed';
 }
