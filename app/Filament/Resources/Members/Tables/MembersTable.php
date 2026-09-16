@@ -16,53 +16,81 @@ class MembersTable
         return $table
             ->columns([
                 TextColumn::make('uuid')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->label('UUID'),
                 TextColumn::make('club.name')
+                    ->label('Verein')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('member_number')
-                    ->searchable(),
+                    ->label('Mitgliedsnummer')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('first_name')
-                    ->searchable(),
+                    ->label('Vorname')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('last_name')
-                    ->searchable(),
+                    ->label('Nachname')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('birth_date')
+                    ->label('Geburtsdatum')
                     ->date()
                     ->sortable(),
                 TextColumn::make('email')
                     ->label('Email address')
                     ->searchable(),
                 TextColumn::make('phone')
-                    ->searchable(),
+                    ->label('Telefonnummer')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('status')
+                    ->label('Status')
                     ->badge()
                     ->searchable(),
                 TextColumn::make('joined_at')
+                    ->label('Beitrittsdatum')
                     ->date()
                     ->sortable(),
                 TextColumn::make('left_at')
+                    ->label('Austrittsdatum')
                     ->date()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
                 TextColumn::make('created_at')
+                    ->label('Erstellt am')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Zuletzt aktualisiert am')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('street')
+                    ->label('Straße')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('house_number')
+                    ->label('Hausnummer')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('postal_code')
+                    ->label('Postleitzahl')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('city')
+                    ->label('Stadt')
                     ->searchable(),
                 TextColumn::make('country_code')
+                    ->label('Land')
                     ->searchable(),
                 TextColumn::make('mobile')
+                    ->label('Mobiltelefon')
                     ->searchable(),
                 TextColumn::make('membershipType.name')
+                    ->label('Mitgliedschaftstyp')
                     ->searchable(),
             ])
             ->filters([
