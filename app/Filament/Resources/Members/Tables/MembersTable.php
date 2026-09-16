@@ -16,7 +16,6 @@ class MembersTable
         return $table
             ->columns([
                 TextColumn::make('uuid')
-                    ->toggleable(isToggledHiddenByDefault: true)
                     ->label('UUID'),
                 TextColumn::make('club.name')
                     ->label('Verein')

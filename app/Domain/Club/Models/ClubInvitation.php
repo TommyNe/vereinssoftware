@@ -2,6 +2,7 @@
 
 namespace App\Domain\Club\Models;
 
+use App\Domain\Club\Enums\ClubInvitationStatus;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -99,5 +100,28 @@ final class ClubInvitation extends Model
         return ! $this->isExpired()
             && ! $this->isAccepted()
             && ! $this->isRevoked();
+    }
+
+    public function status(): ClubInvitationStatus
+    {
+        if ($this->accepted_at !== null) {
+            return ClubInvitationStatus::Accepted;
+        }
+
+        if ($this->revoked_at !== null) {
+            return ClubInvitationStatus::Revoked;
+        }
+
+        if ($this->expires_at->isPast()) {
+            return ClubInvitationStatus::Expired;
+        }
+
+        return ClubInvitationStatus::Pending;
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status()
+            === ClubInvitationStatus::Pending;
     }
 }

@@ -197,4 +197,84 @@ final readonly class ClubInvitationManager
 
         return $invitation;
     }
+
+    public function resend(
+        ClubInvitation $invitation,
+    ): void {
+        $club = $this->currentClub->get();
+
+        if (
+            (string) $invitation->club_id !==
+            (string) $club->getKey()
+        ) {
+            throw new InvalidArgumentException(
+                'Die Einladung gehört nicht zum aktuellen Verein.'
+            );
+        }
+
+        if ($invitation->isAccepted()) {
+            throw new InvalidArgumentException(
+                'Eine bereits akzeptierte Einladung kann nicht erneut versendet werden.'
+            );
+        }
+
+        if ($invitation->isRevoked()) {
+            throw new InvalidArgumentException(
+                'Eine widerrufene Einladung kann nicht erneut versendet werden.'
+            );
+        }
+
+        /*
+         * Alten Token NICHT wiederverwenden.
+         */
+        $token = Str::random(64);
+
+        $invitation->update([
+            'token_hash' => hash(
+                'sha256',
+                $token
+            ),
+
+            'expires_at' => now()->addDays(7),
+        ]);
+
+        Notification::route(
+            'mail',
+            $invitation->email,
+        )->notify(
+            new ClubInvitationNotification(
+                invitation: $invitation,
+                token: $token,
+            )
+        );
+    }
+
+    public function revoke(
+        ClubInvitation $invitation,
+    ): void {
+        $club = $this->currentClub->get();
+
+        if (
+            (string) $invitation->club_id !==
+            (string) $club->getKey()
+        ) {
+            throw new InvalidArgumentException(
+                'Die Einladung gehört nicht zum aktuellen Verein.'
+            );
+        }
+
+        if ($invitation->isAccepted()) {
+            throw new InvalidArgumentException(
+                'Eine bereits akzeptierte Einladung kann nicht widerrufen werden.'
+            );
+        }
+
+        if ($invitation->isRevoked()) {
+            return;
+        }
+
+        $invitation->update([
+            'revoked_at' => now(),
+        ]);
+    }
 }
