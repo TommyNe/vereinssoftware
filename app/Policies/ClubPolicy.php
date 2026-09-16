@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Domain\Club\Models\Club;
+use App\Domain\Identity\Enums\Permission;
 use App\Models\User;
 
 final class ClubPolicy
@@ -58,5 +59,41 @@ final class ClubPolicy
         Club $club,
     ): bool {
         return false;
+    }
+
+    public function viewUsers(
+        User $user,
+        Club $club,
+    ): bool {
+        return $this->belongsToClub(
+            user: $user,
+            club: $club,
+        ) && $user->can(
+            Permission::ClubUsersView->value
+        );
+    }
+
+    public function manageUsers(
+        User $user,
+        Club $club,
+    ): bool {
+        return $this->belongsToClub(
+            user: $user,
+            club: $club,
+        ) && $user->can(
+            Permission::ClubUsersManage->value
+        );
+    }
+
+    private function belongsToClub(
+        User $user,
+        Club $club,
+    ): bool {
+        return $user
+            ->clubs()
+            ->whereKey(
+                $club->getKey()
+            )
+            ->exists();
     }
 }

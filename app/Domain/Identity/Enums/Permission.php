@@ -15,6 +15,9 @@ enum Permission: string
     case MembersDepartmentsManage = 'members.departments.manage';
     case MembersFunctionsManage = 'members.functions.manage';
     case MembersPersonalDataView = 'members.personal-data.view';
+    case MembershipTypesManage = 'membership-types.manage';
+    case DepartmentsManage = 'departments.manage';
+    case ClubFunctionsManage = 'club-functions.manage';
     case MembersDocumentsView = 'members.documents.view';
     case MembersExport = 'members.export';
     case ClubUsersView = 'club.users.view';

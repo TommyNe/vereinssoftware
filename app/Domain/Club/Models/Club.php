@@ -2,7 +2,10 @@
 
 namespace App\Domain\Club\Models;
 
+use App\Domain\Membership\Models\ClubFunction;
+use App\Domain\Membership\Models\Department;
 use App\Domain\Membership\Models\Member;
+use App\Domain\Membership\Models\MembershipType;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -42,5 +45,35 @@ class Club extends Model
             User::class,
             'club_user'
         )->withTimestamps();
+    }
+
+    /**
+     * @return HasMany<MembershipType, $this>
+     */
+    public function membershipTypes(): HasMany
+    {
+        return $this->hasMany(
+            MembershipType::class
+        );
+    }
+
+    /**
+     * @return HasMany<Department, $this>
+     */
+    public function departments(): HasMany
+    {
+        return $this->hasMany(
+            Department::class
+        );
+    }
+
+    /**
+     * @return HasMany<ClubFunction, $this>
+     */
+    public function clubFunctions(): HasMany
+    {
+        return $this->hasMany(
+            ClubFunction::class
+        );
     }
 }
