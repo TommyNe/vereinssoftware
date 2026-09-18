@@ -265,7 +265,7 @@ jobs:
           echo "Testing SSH port through WireGuard..."
 
           for i in {1..10}; do
-            if timeout 2 bash -c '</dev/tcp/10.77.0.1/22' 2>/dev/null; then
+            if timeout 2 bash -c '</dev/tcp/10.66.66.1/22' 2>/dev/null; then
               echo "SSH is reachable through WireGuard."
               exit 0
             fi
