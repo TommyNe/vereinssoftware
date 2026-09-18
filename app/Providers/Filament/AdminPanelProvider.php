@@ -7,6 +7,7 @@ use App\Filament\Pages\Auth\Register;
 use App\Filament\Pages\Tenancy\RegisterClub;
 use App\Http\Middleware\AcceptPendingClubInvitation;
 use App\Http\Middleware\SetCurrentClub;
+use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -37,6 +38,12 @@ class AdminPanelProvider extends PanelProvider
             ->registration(
                 Register::class
             )
+            ->passwordReset()
+            ->multiFactorAuthentication([
+                AppAuthentication::make()
+                    ->recoverable(),
+            ])
+            ->profile()
             ->strictAuthorization()
             ->tenant(Club::class)
             ->tenantRegistration(

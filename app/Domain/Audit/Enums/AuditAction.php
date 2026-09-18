@@ -61,4 +61,19 @@ enum AuditAction: string
 
     case ClubUserRoleChanged =
         'club.user.role-changed';
+
+    case UserProfileChanged =
+        'user.profile.changed';
+
+    case UserEmailChanged =
+        'user.email.changed';
+
+    case UserPasswordChanged =
+        'user.password.changed';
+
+    case UserMfaEnabled =
+        'user.mfa.enabled';
+
+    case UserMfaDisabled =
+        'user.mfa.disabled';
 }
