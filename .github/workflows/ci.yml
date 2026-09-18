@@ -243,13 +243,13 @@ jobs:
 
           sudo tee /etc/wireguard/wg0.conf > /dev/null <<EOF
           [Interface]
-          Address = 10.77.0.3/32
+          Address = 10.66.66.3/32
           PrivateKey = ${WG_PRIVATE_KEY}
 
           [Peer]
           PublicKey = ${WG_SERVER_PUBLIC_KEY}
           Endpoint = ${WG_ENDPOINT}
-          AllowedIPs = 10.77.0.1/32
+          AllowedIPs = 10.66.66.1/32
           PersistentKeepalive = 25
           EOF
 
