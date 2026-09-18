@@ -182,8 +182,16 @@ jobs:
       name: production
 
     steps:
+      # -----------------------------------------------------
+      # Checkout
+      # -----------------------------------------------------
+
       - name: Checkout code
         uses: actions/checkout@v6
+
+      # -----------------------------------------------------
+      # Docker image
+      # -----------------------------------------------------
 
       - name: Set image metadata
         run: |
@@ -216,19 +224,91 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # -----------------------------------------------------
+      # WireGuard
+      # -----------------------------------------------------
+
+      - name: Install WireGuard
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wireguard-tools
+
+      - name: Configure WireGuard
+        env:
+          WG_PRIVATE_KEY: ${{ secrets.WG_PRIVATE_KEY }}
+          WG_SERVER_PUBLIC_KEY: ${{ secrets.WG_SERVER_PUBLIC_KEY }}
+          WG_ENDPOINT: ${{ secrets.WG_ENDPOINT }}
+        run: |
+          sudo install -d -m 700 /etc/wireguard
+
+          sudo tee /etc/wireguard/wg0.conf > /dev/null <<EOF
+          [Interface]
+          Address = 10.77.0.3/32
+          PrivateKey = ${WG_PRIVATE_KEY}
+
+          [Peer]
+          PublicKey = ${WG_SERVER_PUBLIC_KEY}
+          Endpoint = ${WG_ENDPOINT}
+          AllowedIPs = 10.77.0.1/32
+          PersistentKeepalive = 25
+          EOF
+
+          sudo chmod 600 /etc/wireguard/wg0.conf
+
+          sudo wg-quick up wg0
+
+      - name: Verify WireGuard connection
+        run: |
+          echo "WireGuard status:"
+          sudo wg show
+
+          echo "Testing SSH port through WireGuard..."
+
+          for i in {1..10}; do
+            if timeout 2 bash -c '</dev/tcp/10.77.0.1/22' 2>/dev/null; then
+              echo "SSH is reachable through WireGuard."
+              exit 0
+            fi
+
+            echo "Waiting for WireGuard / SSH... (${i}/10)"
+            sleep 2
+          done
+
+          echo "ERROR: SSH is not reachable through WireGuard."
+          exit 1
+
+      # -----------------------------------------------------
+      # SSH
+      # -----------------------------------------------------
+
       - name: Start SSH agent
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
 
-      - name: Add server to known_hosts
+      - name: Configure SSH known_hosts
+        env:
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
         run: |
           mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
 
-          ssh-keyscan \
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Test SSH connection
+        run: |
+          ssh \
+            -o BatchMode=yes \
+            -o ConnectTimeout=10 \
             -p "${{ secrets.DEPLOY_PORT }}" \
-            -H "${{ secrets.DEPLOY_HOST }}" \
-            >> ~/.ssh/known_hosts
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            'echo "SSH connection through WireGuard successful."'
+
+      # -----------------------------------------------------
+      # Deployment environment
+      # -----------------------------------------------------
 
       - name: Create deployment environment
         env:
@@ -254,7 +334,6 @@ jobs:
 
           MAIL_FROM_ADDRESS: ${{ vars.MAIL_FROM_ADDRESS }}
           MAIL_FROM_NAME: ${{ vars.MAIL_FROM_NAME }}
-
 
         run: |
           {
@@ -284,6 +363,10 @@ jobs:
             printf 'MAIL_FROM_NAME=%q\n' "$MAIL_FROM_NAME"
           } > .deploy.env
 
+      # -----------------------------------------------------
+      # Docker over SSH through WireGuard
+      # -----------------------------------------------------
+
       - name: Create Docker context
         run: |
           docker context rm production --force || true
@@ -293,7 +376,12 @@ jobs:
             "host=ssh://${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PORT }}"
 
       - name: Test Docker connection
-        run: docker --context production info
+        run: |
+          docker --context production info
+
+      # -----------------------------------------------------
+      # Deploy
+      # -----------------------------------------------------
 
       - name: Deploy application
         run: |
@@ -329,8 +417,17 @@ jobs:
             -f docker-compose.deploy.yml \
             exec -T app php artisan optimize
 
+      # -----------------------------------------------------
+      # Cleanup
+      # -----------------------------------------------------
+
       - name: Cleanup
         if: always()
         run: |
           rm -f .deploy.env
+
           docker context rm production --force || true
+
+          sudo wg-quick down wg0 || true
+
+          sudo rm -f /etc/wireguard/wg0.conf
