@@ -127,6 +127,7 @@ besteht aus folgenden Diensten:
 | Dienst | Aufgabe |
 | --- | --- |
 | `app` | Laravel auf FrankenPHP; über Traefik unter `https://${APP_DOMAIN}` erreichbar |
+| `worker` | Verarbeitet Datenbank-Queues, unter anderem E-Mail-Verifikationen und Einladungen |
 | `postgres` | PostgreSQL 17 für Anwendungs-, Cache-, Session- und Queue-Daten |
 | `valkey` | Passwortgeschützter, persistenter Redis-kompatibler Dienst |
 
@@ -138,6 +139,11 @@ Netzwerk.
 Beim Containerstart führt `.deploy/entrypoint.sh` automatisch Migrationen aus,
 legt Berechtigungen und die Administratorrolle an und baut Konfigurations-,
 Routen- und View-Caches auf.
+
+Der `worker` verwendet den Datenbank-Queue-Treiber und läuft unabhängig vom
+Webcontainer. Das ist für Filament-Benachrichtigungen wichtig: Der Button
+„Erneut senden“ stellt die Verifikationsmail zunächst in die Queue, die erst
+vom Worker an Resend übergeben wird.
 
 ### Produktionsvariablen
 

@@ -65,6 +65,59 @@ services:
       - internal
       - traefik_public
 
+  worker:
+    image: ${APP_IMAGE}
+    restart: unless-stopped
+
+    entrypoint:
+      - php
+      - artisan
+      - queue:work
+      - database
+      - --sleep=3
+      - --tries=3
+      - --timeout=90
+
+    environment:
+      APP_NAME: ${APP_NAME}
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY}
+      APP_URL: https://${APP_DOMAIN}
+
+      LOG_CHANNEL: stderr
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+      SESSION_DRIVER: database
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+
+      REDIS_CLIENT: phpredis
+      REDIS_HOST: valkey
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+      MAIL_MAILER: resend
+      MAIL_FROM_ADDRESS: noreply@bernadus-mail.tinnen.org
+      MAIL_FROM_NAME: Vereinssoftware
+      RESEND_API_KEY: ${RESEND_KEY}
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+
+    networks:
+      - internal
+
   postgres:
     image: postgres:17-alpine
     restart: unless-stopped
