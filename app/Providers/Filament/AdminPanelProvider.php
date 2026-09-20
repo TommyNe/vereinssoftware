@@ -8,10 +8,12 @@ use App\Filament\Pages\Tenancy\RegisterClub;
 use App\Http\Middleware\AcceptPendingClubInvitation;
 use App\Http\Middleware\SetCurrentClub;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
+use Filament\Facades\Filament;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\MenuItem;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -43,7 +45,10 @@ class AdminPanelProvider extends PanelProvider
                 AppAuthentication::make()
                     ->recoverable(),
             ])
-            ->profile()
+            ->userMenuItems([
+                'profile' => MenuItem::make()
+                    ->url(fn (): string => route('filament.admin.pages.profile', ['tenant' => Filament::getTenant()])),
+            ])
             ->strictAuthorization()
             ->tenant(Club::class)
             ->tenantRegistration(

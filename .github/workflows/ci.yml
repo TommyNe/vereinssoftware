@@ -326,11 +326,7 @@ jobs:
           LOG_LEVEL: ${{ vars.LOG_LEVEL || 'info' }}
 
           MAIL_MAILER: ${{ vars.MAIL_MAILER || 'log' }}
-          MAIL_HOST: ${{ vars.MAIL_HOST || '127.0.0.1' }}
-          MAIL_PORT: ${{ vars.MAIL_PORT || '2525' }}
-
-          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          RESEND_KEY: ${{ secrets.RESEND_KEY }}
 
           MAIL_FROM_ADDRESS: ${{ vars.MAIL_FROM_ADDRESS }}
           MAIL_FROM_NAME: ${{ vars.MAIL_FROM_NAME }}

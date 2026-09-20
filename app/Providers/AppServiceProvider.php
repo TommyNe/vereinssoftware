@@ -15,6 +15,8 @@ use App\Policies\ClubPolicy;
 use App\Policies\DepartmentPolicy;
 use App\Policies\MemberPolicy;
 use App\Policies\MembershipTypePolicy;
+use Filament\Facades\Filament;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -39,6 +41,10 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }
+
+        VerifyEmail::createUrlUsing(
+            static fn ($notifiable): string => Filament::getVerifyEmailUrl($notifiable)
+        );
 
         Gate::policy(
             Member::class,

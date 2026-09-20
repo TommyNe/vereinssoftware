@@ -13,4 +13,6 @@
         </x-filament::button>
     </form>
 
+    {{ $this->multiFactorAuthentication }}
+
 </x-filament-panels::page>

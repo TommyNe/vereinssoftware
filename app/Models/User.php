@@ -9,6 +9,8 @@ use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthentication;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthenticationRecovery;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthenticationRecovery;
+use Filament\Auth\Notifications\VerifyEmail as FilamentVerifyEmail;
+use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasTenants;
 use Filament\Panel;
@@ -88,5 +90,13 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         Panel $panel,
     ): bool {
         return true;
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $notification = app(FilamentVerifyEmail::class);
+        $notification->url = Filament::getVerifyEmailUrl($this);
+
+        $this->notify($notification);
     }
 }
