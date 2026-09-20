@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Application\Audit\AuditLogger;
 use App\Domain\Audit\Enums\AuditAction;
 use App\Filament\Actions\ChangePasswordAction;
+use App\Filament\Actions\LogoutOtherDevicesAction;
 use App\Filament\Actions\ResendEmailVerificationAction;
 use App\Models\User;
 use Filament\Actions\Action;
@@ -106,6 +107,7 @@ final class Profile extends Page
     {
         return [
             ChangePasswordAction::make(),
+            LogoutOtherDevicesAction::make(),
             ResendEmailVerificationAction::make(),
         ];
     }

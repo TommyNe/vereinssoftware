@@ -28,7 +28,9 @@ services:
       SESSION_DRIVER: database
       CACHE_STORE: database
       QUEUE_CONNECTION: database
-
+      SESSION_SECURE_COOKIE: "true"
+      SESSION_HTTP_ONLY: "true"
+      SESSION_SAME_SITE: lax
       REDIS_CLIENT: phpredis
       REDIS_HOST: valkey
       REDIS_PORT: 6379

@@ -76,4 +76,16 @@ enum AuditAction: string
 
     case UserMfaDisabled =
         'user.mfa.disabled';
+
+    case UserLoggedIn =
+        'user.logged-in';
+
+    case UserLoggedOut =
+        'user.logged-out';
+
+    case OtherSessionsLoggedOut =
+        'user.other-sessions-logged-out';
+
+    case SessionRevoked =
+        'user.session-revoked';
 }

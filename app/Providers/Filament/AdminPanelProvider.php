@@ -91,6 +91,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                AuthenticateSession::class,
                 AcceptPendingClubInvitation::class,
             ])
             ->tenantMiddleware([

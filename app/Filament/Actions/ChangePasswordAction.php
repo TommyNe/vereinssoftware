@@ -93,6 +93,13 @@ final class ChangePasswordAction
                         403,
                     );
 
+                    $currentPassword =
+                        (string) $data['current_password'];
+
+                    Auth::logoutOtherDevices(
+                        $currentPassword
+                    );
+
                     $user->password =
                         $data['password'];
 
