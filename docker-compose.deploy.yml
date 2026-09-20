@@ -35,7 +35,7 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
 
       MAIL_MAILER: resend
-      MAIL_FROM_ADDRESS: noreply@mail.tinnen.digital
+      MAIL_FROM_ADDRESS: noreply@bernadus-mail.tinnen.org
       MAIL_FROM_NAME: Vereinssoftware
       RESEND_API_KEY: ${RESEND_KEY}
 
