@@ -1,58 +1,181 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Vereinssoftware
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Eine mandantenfähige Verwaltungssoftware für Vereine. Jeder Verein arbeitet
+in einem eigenen Kontext und verwaltet dort Mitglieder, Mitgliedsarten,
+Abteilungen, Vereinsfunktionen und Benutzerzugänge.
 
-## About Laravel
+Das Administrationsinterface steht nach der Anmeldung unter `/admin` bereit.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Funktionsumfang
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Mitglieder mit persönlichen Daten, Kontakt- und Adressdaten verwalten
+- Mitgliedsarten, Abteilungen und Vereinsfunktionen je Verein pflegen
+- Mitglieder Abteilungen zuordnen und Funktionen mit Gültigkeitszeitraum
+  vergeben
+- Mitgliedschaften aussetzen, reaktivieren oder beenden
+- Benutzer per Einladung zu einem Verein hinzufügen
+- E-Mail-Verifikation, Passwort-Reset und Zwei-Faktor-Authentifizierung
+- Änderungsprotokoll für Mitgliedsaktionen
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Architektur
 
-## Learning Laravel
+Die Anwendung basiert auf Laravel 13 und Filament 5. Die fachliche
+Mitgliederverwaltung folgt einem ereignisbasierten Ansatz:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+1. Commands und Handler in `app/Application/Membership` führen Änderungen aus.
+2. `MemberAggregate` prüft die Geschäftsregeln und speichert Domain Events.
+3. `MemberProjector` erzeugt daraus die lesbaren Datenmodelle (`members`,
+   Abteilungs- und Funktionszuordnungen).
+4. `MemberAuditReactor` protokolliert relevante Änderungen im Audit-Log.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Die Mandantentrennung erfolgt über das Filament-Tenant-Modell `Club`. Ein
+Benutzer kann mehreren Vereinen angehören; Berechtigungen werden mit
+`spatie/laravel-permission` verwaltet.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## Voraussetzungen
 
-## Agentic Development
+- PHP 8.4 oder 8.5 mit den für Laravel erforderlichen Erweiterungen
+- Composer 2
+- Node.js 22 und npm
+- Für die lokale Standardkonfiguration: SQLite
+- Für Produktion: Docker Compose v2 sowie ein vorhandenes Docker-Netzwerk
+  `traefik_public`
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Lokale Entwicklung
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+cp .env.example .env
+touch database/database.sqlite
+php artisan key:generate
+php artisan migrate
+npm ci
+npm run dev
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Der Vite-Entwicklungsserver beobachtet Frontend-Dateien. In einem zweiten
+Terminal kann Laravel mit folgendem Befehl gestartet werden:
 
-## Contributing
+```bash
+php artisan serve
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Ohne laufenden Vite-Server werden die Assets einmalig gebaut:
 
-## Code of Conduct
+```bash
+npm run build
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Die lokale Datenbank ist standardmäßig SQLite. Für PostgreSQL müssen die
+`DB_*`-Variablen in `.env` gesetzt werden.
 
-## Security Vulnerabilities
+## Wichtige Befehle
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+# Tests
+php artisan test --compact
 
-## License
+# PHP-Formatierung
+vendor/bin/pint --format agent
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# Statische Analyse
+composer analyse
+
+# Frontend-Formatierung und Linting
+npm run format:check
+npm run lint
+```
+
+## Projektstruktur
+
+| Pfad | Zweck |
+| --- | --- |
+| `app/Domain` | Fachliche Modelle, Aggregate, Events, Value Objects und Policies |
+| `app/Application` | Anwendungsfälle, Commands und Handler |
+| `app/Filament` | Administrationsoberfläche und Ressourcen |
+| `app/Http` | API-Controller, Requests und Middleware |
+| `app/Infrastructure` | Technische Infrastruktur, etwa gespeicherte Events |
+| `database/migrations` | Datenbankschema |
+| `tests/Feature` | Integrations- und Oberflächentests |
+| `.deploy/entrypoint.sh` | Produktionsstart: Migrationen, Rollen, Caches, FrankenPHP |
+
+## API
+
+Die API ist durch Laravel Sanctum und den aktuellen Vereinskontext geschützt.
+Sie stellt Endpunkte zum Anlegen und Ändern von Mitgliedern sowie für
+Mitgliedsarten, Abteilungen und Funktionen bereit. Alle API-Anfragen benötigen
+eine authentifizierte Sitzung bzw. ein Sanctum-Token und einen gültigen
+Vereinskontext.
+
+Die Routen sind in `routes/api.php` definiert.
+
+## Produktion und Deployment
+
+Ein Push auf `main` startet den GitHub-Actions-Workflow:
+
+1. Formatierung, statische Analyse, Frontend-Linting und Tests laufen.
+2. Ein Multi-Stage-Docker-Image wird gebaut und in GitHub Container Registry
+   (`ghcr.io`) mit `latest` und dem Commit-SHA veröffentlicht.
+3. Der Runner verbindet sich über WireGuard und SSH mit dem Produktionsserver.
+4. Docker Compose zieht das neue Image, startet die Dienste und optimiert
+   Laravel.
+
+Die Produktionsumgebung wird durch
+[`docker-compose.deploy.yml`](docker-compose.deploy.yml) beschrieben. Sie
+besteht aus folgenden Diensten:
+
+| Dienst | Aufgabe |
+| --- | --- |
+| `app` | Laravel auf FrankenPHP; über Traefik unter `https://${APP_DOMAIN}` erreichbar |
+| `postgres` | PostgreSQL 17 für Anwendungs-, Cache-, Session- und Queue-Daten |
+| `valkey` | Passwortgeschützter, persistenter Redis-kompatibler Dienst |
+
+`postgres_data`, `app_storage` und `valkey_data` sind benannte Docker-Volumes
+und bleiben bei einem Container-Neustart erhalten. Nur `app` ist mit dem
+externen Traefik-Netzwerk verbunden; Datenbank und Valkey bleiben im internen
+Netzwerk.
+
+Beim Containerstart führt `.deploy/entrypoint.sh` automatisch Migrationen aus,
+legt Berechtigungen und die Administratorrolle an und baut Konfigurations-,
+Routen- und View-Caches auf.
+
+### Produktionsvariablen
+
+Die CI erzeugt die Compose-Umgebung aus GitHub-Variablen und -Secrets. Diese
+Werte werden benötigt:
+
+| Variable | Quelle | Zweck |
+| --- | --- | --- |
+| `APP_NAME`, `APP_DOMAIN`, `LOG_LEVEL` | GitHub Variables | Anwendungsname, öffentliche Domain und Log-Level |
+| `APP_KEY` | GitHub Secret | Laravel-Anwendungsschlüssel |
+| `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | GitHub Secrets | PostgreSQL-Zugangsdaten |
+| `REDIS_PASSWORD` | GitHub Secret | Passwort für Valkey |
+| `RESEND_KEY` | GitHub Secret | API-Schlüssel für den Versand über Resend |
+| `DEPLOY_HOST`, `DEPLOY_PORT`, `DEPLOY_USER`, `DEPLOY_SSH_PRIVATE_KEY`, `SSH_KNOWN_HOSTS` | GitHub Secrets | SSH-Zugang zum Produktionsserver |
+| `WG_PRIVATE_KEY`, `WG_SERVER_PUBLIC_KEY`, `WG_ENDPOINT` | GitHub Secrets | WireGuard-Verbindung zum Produktionsnetz |
+
+`APP_IMAGE` wird durch den Workflow automatisch auf das Image des aktuellen
+Commits gesetzt. Das externe Docker-Netzwerk `traefik_public` und ein
+funktionierender Traefik-Resolver namens `le` müssen auf dem Zielserver bereits
+vorhanden sein.
+
+### Manueller Rollout
+
+Für einen manuellen Rollout wird eine nicht versionierte Umgebungsdatei mit den
+oben genannten Werten benötigt. Anschließend:
+
+```bash
+set -a
+source ./.deploy.env
+set +a
+docker compose -f docker-compose.deploy.yml pull
+docker compose -f docker-compose.deploy.yml up -d --remove-orphans
+docker compose -f docker-compose.deploy.yml exec -T app php artisan optimize
+```
+
+Die Migrationen laufen bereits im Entrypoint; bei einem manuellen Rollout
+können sie zusätzlich explizit ausgeführt werden:
+
+```bash
+docker compose -f docker-compose.deploy.yml exec -T app php artisan migrate --force
+```

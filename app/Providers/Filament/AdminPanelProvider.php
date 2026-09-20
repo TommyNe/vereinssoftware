@@ -47,7 +47,18 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->userMenuItems([
                 'profile' => MenuItem::make()
-                    ->url(fn (): string => route('filament.admin.pages.profile', ['tenant' => Filament::getTenant()])),
+                    ->url(function (): ?string {
+                        $tenant = Filament::getTenant();
+
+                        if (! $tenant instanceof Club) {
+                            return null;
+                        }
+
+                        return route(
+                            'filament.admin.pages.profile',
+                            ['tenant' => $tenant],
+                        );
+                    }),
             ])
             ->strictAuthorization()
             ->tenant(Club::class)

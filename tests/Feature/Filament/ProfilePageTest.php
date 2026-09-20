@@ -85,3 +85,15 @@ test('filament admin default panel and user menu items are configured correctly'
     expect($userMenuItems)->toHaveKey('profile')
         ->and($userMenuItems['profile']->getUrl())->toBe(route('filament.admin.pages.profile', ['tenant' => $club]));
 });
+
+test('profile menu item does not generate a tenant URL without an active club', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user);
+    Filament\Facades\Filament::setTenant(null);
+
+    $panel = Filament\Facades\Filament::getDefaultPanel();
+    $userMenuItems = $panel->getUserMenuItemGroups();
+
+    expect($userMenuItems[0]['profile']->getUrl())->toBeNull();
+});
