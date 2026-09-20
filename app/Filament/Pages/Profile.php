@@ -19,6 +19,9 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * @property-read Schema $form
+ */
 final class Profile extends Page
 {
     protected static ?string $title = 'Profil';
