@@ -347,6 +347,7 @@ jobs:
             printf 'REDIS_PASSWORD=%q\n' "$REDIS_PASSWORD"
 
             printf 'LOG_LEVEL=%q\n' "$LOG_LEVEL"
+            printf 'RESEND_KEY=%q\n' "$RESEND_KEY"
 
             printf 'MAIL_MAILER=%q\n' "$MAIL_MAILER"
             printf 'MAIL_HOST=%q\n' "$MAIL_HOST"
