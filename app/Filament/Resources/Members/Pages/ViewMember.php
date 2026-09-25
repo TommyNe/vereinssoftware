@@ -6,6 +6,7 @@ use App\Filament\Resources\Members\Actions\AssignFunctionAction;
 use App\Filament\Resources\Members\Actions\ChangeAddressAction;
 use App\Filament\Resources\Members\Actions\ChangeContactDataAction;
 use App\Filament\Resources\Members\Actions\ChangeMembershipTypeAction;
+use App\Filament\Resources\Members\Actions\UploadDocumentAction;
 use App\Filament\Resources\Members\Actions\ChangePersonalDataAction;
 use App\Filament\Resources\Members\Actions\EndFunctionAction;
 use App\Filament\Resources\Members\Actions\JoinDepartmentAction;
@@ -54,6 +55,14 @@ class ViewMember extends ViewRecord
             ])
                 ->label('Funktionen')
                 ->icon('heroicon-o-briefcase'),
+
+            ActionGroup::make([
+                UploadDocumentAction::make(),
+            ])
+                ->label('Dokumente')
+                ->icon(
+                    'heroicon-o-document-text'
+                ),
         ];
     }
 }

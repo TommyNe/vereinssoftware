@@ -145,4 +145,26 @@ final readonly class MemberPolicy
         return (string) $member->club_id ===
             $this->currentClub->id();
     }
+
+    public function viewDocuments(
+        User $user,
+        Member $member,
+    ): bool {
+        return $this->belongsToCurrentClub(
+                $member
+            ) && $user->can(
+                Permission::MembersDocumentsView->value
+            );
+    }
+
+    public function manageDocuments(
+        User $user,
+        Member $member,
+    ): bool {
+        return $this->belongsToCurrentClub(
+                $member
+            ) && $user->can(
+                Permission::MembersDocumentsManage->value
+            );
+    }
 }

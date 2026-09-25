@@ -154,4 +154,14 @@ final class Member extends Projection
             ),
         );
     }
+
+    /**
+     * @return HasMany<MemberDocument, $this>
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(
+            MemberDocument::class
+        );
+    }
 }
