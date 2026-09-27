@@ -2,11 +2,15 @@
 
 namespace App\Filament\Resources\Members\Schemas;
 
+use App\Domain\Membership\Enums\MemberDocumentType;
 use App\Domain\Membership\Enums\MembershipStatus;
+use App\Domain\Membership\Models\MemberDocument;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Number;
 
 class MemberInfolist
 {
@@ -63,6 +67,63 @@ class MemberInfolist
                                     ->label('Bis')
                                     ->date('d.m.Y')
                                     ->placeholder('heute'),
+                            ])
+                            ->columns(3),
+                    ]),
+                Section::make('Dokumente')
+                    ->description(
+                        'Hochgeladene Dokumente dieses Mitglieds.'
+                    )
+                    ->schema([
+                        RepeatableEntry::make('documents')
+                            ->label('')
+                            ->placeholder('Keine Dokumente vorhanden')
+                            ->schema([
+                                TextEntry::make('original_name')
+                                    ->label('Dateiname')
+                                    ->icon('heroicon-o-arrow-down-tray')
+                                    ->url(static fn (MemberDocument $record): ?string => Gate::allows('viewDocuments', $record->member)
+                                        ? route('member-documents.download', $record)
+                                        : null),
+
+                                TextEntry::make('type')
+                                    ->label('Dokumenttyp')
+                                    ->formatStateUsing(
+                                        static function (
+                                            MemberDocumentType|string|null $state
+                                        ): string {
+                                            if ($state instanceof MemberDocumentType) {
+                                                return $state->label();
+                                            }
+
+                                            if (is_string($state)) {
+                                                return MemberDocumentType::tryFrom($state)
+                                                    ?->label()
+                                                    ?? $state;
+                                            }
+
+                                            return '—';
+                                        }
+                                    ),
+
+                                TextEntry::make('mime_type')
+                                    ->label('Dateityp'),
+
+                                TextEntry::make('size')
+                                    ->label('Größe')
+                                    ->formatStateUsing(
+                                        static fn (
+                                            int|string|null $state
+                                        ): string => Number::fileSize(
+                                            (int) $state
+                                        )
+                                    ),
+
+                                TextEntry::make('created_at')
+                                    ->label('Hochgeladen am')
+                                    ->dateTime(
+                                        'd.m.Y H:i'
+                                    ),
                             ])
                             ->columns(3),
                     ]),

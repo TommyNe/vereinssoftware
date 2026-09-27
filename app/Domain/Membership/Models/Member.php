@@ -161,7 +161,8 @@ final class Member extends Projection
     public function documents(): HasMany
     {
         return $this->hasMany(
-            MemberDocument::class
+            MemberDocument::class,
+            'member_id',
         );
     }
 }

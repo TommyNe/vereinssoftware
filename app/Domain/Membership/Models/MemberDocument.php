@@ -28,8 +28,7 @@ final class MemberDocument extends Model
     protected function casts(): array
     {
         return [
-            'type' =>
-                MemberDocumentType::class,
+            'type' => MemberDocumentType::class,
         ];
     }
 
@@ -49,7 +48,8 @@ final class MemberDocument extends Model
     public function member(): BelongsTo
     {
         return $this->belongsTo(
-            Member::class
+            Member::class,
+            'member_id',
         );
     }
 

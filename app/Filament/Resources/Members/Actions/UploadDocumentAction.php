@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Members\Actions;
 
 use App\Application\Membership\MemberDocumentManager;
-use App\Domain\Auth\Enums\Permission;
 use App\Domain\Membership\Enums\MemberDocumentType;
 use App\Domain\Membership\Models\Member;
 use App\Models\User;
@@ -31,8 +30,7 @@ final class UploadDocumentAction
             ->visible(
                 static fn (
                     Member $record
-                ): bool =>
-                Gate::allows(
+                ): bool => Gate::allows(
                     'manageDocuments',
                     $record
                 )
@@ -52,8 +50,7 @@ final class UploadDocumentAction
                                 static fn (
                                     MemberDocumentType $type
                                 ): array => [
-                                    $type->value =>
-                                        $type->label(),
+                                    $type->value => $type->label(),
                                 ]
                             )
                             ->all()
@@ -64,6 +61,9 @@ final class UploadDocumentAction
                     ->required()
                     ->disk('local')
                     ->visibility('private')
+                    ->directory(static fn (Member $record): string => 'members/'.$record->club_id.'/'.$record->getKey().'/documents')
+                    ->storeFileNamesIn('original_name')
+                    ->preventFilePathTampering()
                     ->acceptedFileTypes([
                         'application/pdf',
                         'image/jpeg',
@@ -90,16 +90,20 @@ final class UploadDocumentAction
                         403,
                     );
 
-                    /*
-                     * Achtung:
-                     * Je nach Filament-Upload-State
-                     * kann hier der Upload bereits
-                     * gespeichert worden sein.
-                     *
-                     * Deshalb überprüfen wir gleich
-                     * unsere konkrete Action-Struktur
-                     * im nächsten Schritt.
-                     */
+                    $manager->registerStoredFile(
+                        member: $record,
+                        storagePath: $data['document'],
+                        originalName: $data['original_name'],
+                        type: MemberDocumentType::from($data['type']),
+                        uploadedBy: $user,
+                    );
+
+                    $record->load('documents');
+
+                    Notification::make()
+                        ->title('Dokument hochgeladen')
+                        ->success()
+                        ->send();
                 }
             );
     }

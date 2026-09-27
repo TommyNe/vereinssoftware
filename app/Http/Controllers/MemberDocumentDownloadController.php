@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Application\Club\CurrentClub;
 use App\Domain\Membership\Models\MemberDocument;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -11,7 +13,15 @@ final class MemberDocumentDownloadController
 {
     public function __invoke(
         MemberDocument $document,
+        Request $request,
+        CurrentClub $currentClub,
     ): StreamedResponse {
+        $user = $request->user();
+        $club = $user->clubs()->whereKey($document->club_id)->firstOrFail();
+        $currentClub->set($club);
+        setPermissionsTeamId($club->getKey());
+        $user->unsetRelation('roles')->unsetRelation('permissions');
+
         Gate::authorize(
             'viewDocuments',
             $document->member
@@ -30,8 +40,7 @@ final class MemberDocumentDownloadController
                 $document->storage_path,
                 $document->original_name,
                 [
-                    'Content-Type' =>
-                        $document->mime_type,
+                    'Content-Type' => $document->mime_type,
                 ]
             );
     }
