@@ -5,6 +5,19 @@ namespace App\Filament\Resources\Members\Schemas;
 use App\Domain\Membership\Enums\MemberDocumentType;
 use App\Domain\Membership\Enums\MembershipStatus;
 use App\Domain\Membership\Models\MemberDocument;
+use App\Filament\Resources\Members\Actions\AssignFunctionAction;
+use App\Filament\Resources\Members\Actions\ChangeAddressAction;
+use App\Filament\Resources\Members\Actions\ChangeContactDataAction;
+use App\Filament\Resources\Members\Actions\ChangeMembershipTypeAction;
+use App\Filament\Resources\Members\Actions\ChangePersonalDataAction;
+use App\Filament\Resources\Members\Actions\EndFunctionAction;
+use App\Filament\Resources\Members\Actions\JoinDepartmentAction;
+use App\Filament\Resources\Members\Actions\LeaveDepartmentAction;
+use App\Filament\Resources\Members\Actions\LeaveMemberAction;
+use App\Filament\Resources\Members\Actions\ReactivateMemberAction;
+use App\Filament\Resources\Members\Actions\SuspendMemberAction;
+use App\Filament\Resources\Members\Actions\UploadDocumentAction;
+use Filament\Actions\ActionGroup;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -17,10 +30,106 @@ class MemberInfolist
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->columns(['lg' => 2])
             ->components([
+                Section::make('Mitgliedschaft')
+                    ->key('membership')
+                    ->headerActions([
+                        ActionGroup::make([
+                            ChangeMembershipTypeAction::make(),
+                            SuspendMemberAction::make(),
+                            ReactivateMemberAction::make(),
+                            LeaveMemberAction::make(),
+                        ])->label('Aktionen')->icon('heroicon-o-ellipsis-horizontal')->button(),
+                    ])
+                    ->icon('heroicon-o-identification')
+                    ->columnSpanFull()
+                    ->columns(['sm' => 2, 'xl' => 4])
+                    ->schema([
+                        TextEntry::make('member_number')->label('Mitgliedsnummer'),
+                        TextEntry::make('membershipType.name')
+                            ->label('Mitgliedsart')
+                            ->placeholder('Keine Mitgliedsart'),
+                        TextEntry::make('status')
+                            ->label('Status')
+                            ->badge()
+                            ->formatStateUsing(
+                                static fn (
+                                    MembershipStatus $state,
+                                ): string => match ($state) {
+                                    MembershipStatus::Active => 'Aktiv',
+
+                                    MembershipStatus::Suspended => 'Gesperrt',
+
+                                    MembershipStatus::Left => 'Ausgetreten',
+                                }
+                            )
+                            ->color(
+                                static fn (
+                                    MembershipStatus $state,
+                                ): string => match ($state) {
+                                    MembershipStatus::Active => 'success',
+
+                                    MembershipStatus::Suspended => 'warning',
+
+                                    MembershipStatus::Left => 'danger',
+                                }
+                            ),
+                        TextEntry::make('club.name')->label('Verein'),
+                        TextEntry::make('joined_at')->label('Eintritt')->date('d.m.Y')->placeholder('–'),
+                        TextEntry::make('left_at')->label('Austritt')->date('d.m.Y')->placeholder('–'),
+                    ]),
+                Section::make('Persönliche Daten')
+                    ->key('personal')
+                    ->headerActions([
+                        ChangePersonalDataAction::make()->label('Bearbeiten'),
+                    ])
+                    ->icon('heroicon-o-user')
+                    ->columns(['sm' => 2])
+                    ->schema([
+                        TextEntry::make('first_name')->label('Vorname'),
+                        TextEntry::make('last_name')->label('Nachname'),
+                        TextEntry::make('birth_date')->label('Geburtsdatum')->date('d.m.Y')->placeholder('–'),
+                    ]),
+                Section::make('Kontakt')
+                    ->key('contact')
+                    ->headerActions([
+                        ChangeContactDataAction::make()->label('Bearbeiten'),
+                    ])
+                    ->icon('heroicon-o-chat-bubble-left-right')
+                    ->columns(['sm' => 2])
+                    ->schema([
+                        TextEntry::make('email')->label('E-Mail')->placeholder('–')->columnSpanFull(),
+                        TextEntry::make('phone')->label('Telefon')->placeholder('–'),
+                        TextEntry::make('mobile')->label('Mobiltelefon')->placeholder('–'),
+                    ]),
+                Section::make('Anschrift')
+                    ->key('address')
+                    ->headerActions([
+                        ChangeAddressAction::make()->label('Bearbeiten'),
+                    ])
+                    ->icon('heroicon-o-map-pin')
+                    ->columnSpanFull()
+                    ->columns(['sm' => 2, 'xl' => 5])
+                    ->schema([
+                        TextEntry::make('street')->label('Straße')->placeholder('–'),
+                        TextEntry::make('house_number')->label('Hausnummer')->placeholder('–'),
+                        TextEntry::make('postal_code')->label('Postleitzahl')->placeholder('–'),
+                        TextEntry::make('city')->label('Ort')->placeholder('–'),
+                        TextEntry::make('country_code')->label('Land')->placeholder('–'),
+                    ]),
                 Section::make('Abteilungen')
+                    ->key('departments')
+                    ->headerActions([
+                        ActionGroup::make([
+                            JoinDepartmentAction::make(),
+                            LeaveDepartmentAction::make(),
+                        ])->label('Aktionen')->icon('heroicon-o-ellipsis-horizontal')->button(),
+                    ])
+                    ->icon('heroicon-o-building-office')
                     ->schema([
                         RepeatableEntry::make('departments')
+                            ->placeholder('Keine Abteilungen zugeordnet')
                             ->label('')
                             ->schema([
                                 TextEntry::make('name')
@@ -29,10 +138,19 @@ class MemberInfolist
                             ->columns(1),
                     ]),
                 Section::make('Vereinsfunktionen')
+                    ->key('functions')
+                    ->headerActions([
+                        ActionGroup::make([
+                            AssignFunctionAction::make(),
+                            EndFunctionAction::make(),
+                        ])->label('Aktionen')->icon('heroicon-o-ellipsis-horizontal')->button(),
+                    ])
+                    ->icon('heroicon-o-briefcase')
                     ->schema([
                         RepeatableEntry::make(
                             'activeFunctionAssignments'
                         )
+                            ->placeholder('Keine aktiven Funktionen')
                             ->label('')
                             ->schema([
                                 TextEntry::make(
@@ -46,31 +164,13 @@ class MemberInfolist
                             ])
                             ->columns(2),
                     ]),
-                Section::make('Funktionshistorie')
-                    ->collapsed()
-                    ->schema([
-                        RepeatableEntry::make(
-                            'functionAssignments'
-                        )
-                            ->label('')
-                            ->schema([
-                                TextEntry::make(
-                                    'clubFunction.name'
-                                )
-                                    ->label('Funktion'),
-
-                                TextEntry::make('valid_from')
-                                    ->label('Von')
-                                    ->date('d.m.Y'),
-
-                                TextEntry::make('valid_until')
-                                    ->label('Bis')
-                                    ->date('d.m.Y')
-                                    ->placeholder('heute'),
-                            ])
-                            ->columns(3),
-                    ]),
                 Section::make('Dokumente')
+                    ->key('documents')
+                    ->headerActions([
+                        UploadDocumentAction::make(),
+                    ])
+                    ->icon('heroicon-o-document-text')
+                    ->columnSpanFull()
                     ->description(
                         'Hochgeladene Dokumente dieses Mitglieds.'
                     )
@@ -127,76 +227,43 @@ class MemberInfolist
                             ])
                             ->columns(3),
                     ]),
-                TextEntry::make('uuid')
-                    ->label('UUID'),
-                TextEntry::make('club.name')
-                    ->label('Club'),
-                TextEntry::make('member_number'),
-                TextEntry::make('first_name'),
-                TextEntry::make('last_name'),
-                TextEntry::make('birth_date')
-                    ->date()
-                    ->placeholder('-'),
-                TextEntry::make('email')
-                    ->label('Email address')
-                    ->placeholder('-'),
-                TextEntry::make('phone')
-                    ->placeholder('-'),
-                TextEntry::make('status')
-                    ->label('Status')
-                    ->badge()
-                    ->formatStateUsing(
-                        static fn (
-                            MembershipStatus $state,
-                        ): string => match ($state) {
-                            MembershipStatus::Active => 'Aktiv',
+                Section::make('Funktionshistorie')
+                    ->icon('heroicon-o-clock')
+                    ->columnSpanFull()
+                    ->collapsed()
+                    ->schema([
+                        RepeatableEntry::make(
+                            'functionAssignments'
+                        )
+                            ->placeholder('Keine bisherigen Funktionen')
+                            ->label('')
+                            ->schema([
+                                TextEntry::make(
+                                    'clubFunction.name'
+                                )
+                                    ->label('Funktion'),
 
-                            MembershipStatus::Suspended => 'Gesperrt',
+                                TextEntry::make('valid_from')
+                                    ->label('Von')
+                                    ->date('d.m.Y'),
 
-                            MembershipStatus::Left => 'Ausgetreten',
-                        }
-                    )
-                    ->color(
-                        static fn (
-                            MembershipStatus $state,
-                        ): string => match ($state) {
-                            MembershipStatus::Active => 'success',
-
-                            MembershipStatus::Suspended => 'warning',
-
-                            MembershipStatus::Left => 'danger',
-                        }
-                    ),
-                TextEntry::make('joined_at')
-                    ->label('Eintritt')
-                    ->date('d.m.Y'),
-                TextEntry::make('left_at')
-                    ->label('Austritt')
-                    ->date('d.m.Y')
-                    ->placeholder('–'),
-                TextEntry::make('created_at')
-                    ->dateTime()
-                    ->placeholder('-'),
-                TextEntry::make('updated_at')
-                    ->dateTime()
-                    ->placeholder('-'),
-                TextEntry::make('street')
-                    ->placeholder('-'),
-                TextEntry::make('house_number')
-                    ->placeholder('-'),
-                TextEntry::make('postal_code')
-                    ->placeholder('-'),
-                TextEntry::make('city')
-                    ->placeholder('-'),
-                TextEntry::make('country_code')
-                    ->placeholder('-'),
-                TextEntry::make('mobile')
-                    ->placeholder('-'),
-                TextEntry::make(
-                    'membershipType.name'
-                )
-                    ->label('Mitgliedsart')
-                    ->placeholder('Keine Mitgliedsart'),
+                                TextEntry::make('valid_until')
+                                    ->label('Bis')
+                                    ->date('d.m.Y')
+                                    ->placeholder('heute'),
+                            ])
+                            ->columns(3),
+                    ]),
+                Section::make('Systeminformationen')
+                    ->icon('heroicon-o-information-circle')
+                    ->columnSpanFull()
+                    ->collapsed()
+                    ->columns(['sm' => 2])
+                    ->schema([
+                        TextEntry::make('uuid')->label('UUID')->columnSpanFull(),
+                        TextEntry::make('created_at')->label('Erstellt am')->dateTime('d.m.Y H:i')->placeholder('–'),
+                        TextEntry::make('updated_at')->label('Zuletzt geändert')->dateTime('d.m.Y H:i')->placeholder('–'),
+                    ]),
             ]);
     }
 }
