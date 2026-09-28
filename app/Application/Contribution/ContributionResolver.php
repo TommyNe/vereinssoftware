@@ -98,7 +98,7 @@ final readonly class ContributionResolver
     private function resolveOverrideAmount(
         MemberContributionOverride $override,
     ): string {
-        return match ($override->type) {
+        return match (MemberContributionOverrideType::from((string) $override->getRawOriginal('type'))) {
             MemberContributionOverrideType::Exempt => '0.00',
 
             MemberContributionOverrideType::FixedAmount => $override->amount
@@ -173,7 +173,7 @@ final readonly class ContributionResolver
             );
         }
 
-        return $rate->amount;
+        return (string) $rate->amount;
     }
 
     private function ensureSameClub(

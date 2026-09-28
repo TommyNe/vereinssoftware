@@ -174,9 +174,6 @@ final class AddContributionOverrideAction
                             'valid_until'
                             ]
                         )
-                        && $data[
-                        'valid_until'
-                        ] !== null
                             ? CarbonImmutable::parse(
                                 $data[
                                 'valid_until'
