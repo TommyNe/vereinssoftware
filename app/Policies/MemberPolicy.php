@@ -151,10 +151,10 @@ final readonly class MemberPolicy
         Member $member,
     ): bool {
         return $this->belongsToCurrentClub(
-                $member
-            ) && $user->can(
-                Permission::MembersDocumentsView->value
-            );
+            $member
+        ) && $user->can(
+            Permission::MembersDocumentsView->value
+        );
     }
 
     public function manageDocuments(
@@ -162,9 +162,32 @@ final readonly class MemberPolicy
         Member $member,
     ): bool {
         return $this->belongsToCurrentClub(
-                $member
-            ) && $user->can(
-                Permission::MembersDocumentsManage->value
-            );
+            $member
+        ) && $user->can(
+            Permission::MembersDocumentsManage->value
+        );
+    }
+
+    public function viewContributions(
+        User $user,
+        Member $member,
+    ): bool {
+        return $this->belongsToCurrentClub(
+            $member
+        ) && $user->can(
+            Permission::ContributionsView->value
+        );
+    }
+
+    public function manageContributions(
+        User $user,
+        Member $member,
+    ): bool {
+        return $this->belongsToCurrentClub(
+            $member
+        ) && $user->can(
+            Permission::MemberContributionsManage
+                ->value
+        );
     }
 }

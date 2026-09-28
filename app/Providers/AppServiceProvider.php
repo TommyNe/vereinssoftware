@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Application\Club\CurrentClub;
 use App\Domain\Club\Models\Club;
 use App\Domain\Club\Models\ClubInvitation;
+use App\Domain\Contribution\Models\ContributionRate;
 use App\Domain\Membership\Models\ClubFunction;
 use App\Domain\Membership\Models\Department;
 use App\Domain\Membership\Models\Member;
@@ -12,6 +13,7 @@ use App\Domain\Membership\Models\MembershipType;
 use App\Policies\ClubFunctionPolicy;
 use App\Policies\ClubInvitationPolicy;
 use App\Policies\ClubPolicy;
+use App\Policies\ContributionRatePolicy;
 use App\Policies\DepartmentPolicy;
 use App\Policies\MemberPolicy;
 use App\Policies\MembershipTypePolicy;
@@ -38,6 +40,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::policy(ContributionRate::class, ContributionRatePolicy::class);
+
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }

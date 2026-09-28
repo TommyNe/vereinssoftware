@@ -4,6 +4,7 @@ namespace App\Domain\Membership\Models;
 
 use App\Application\Club\CurrentClub;
 use App\Domain\Club\Models\Club;
+use App\Domain\Contribution\Models\MemberContributionOverride;
 use App\Domain\Membership\Enums\MembershipStatus;
 use Carbon\CarbonImmutable;
 use Database\Factories\Domain\Membership\Models\MemberFactory;
@@ -163,6 +164,16 @@ final class Member extends Projection
         return $this->hasMany(
             MemberDocument::class,
             'member_id',
+        );
+    }
+
+    /**
+     * @return HasMany<MemberContributionOverride, $this>
+     */
+    public function contributionOverrides(): HasMany
+    {
+        return $this->hasMany(
+            MemberContributionOverride::class
         );
     }
 }
