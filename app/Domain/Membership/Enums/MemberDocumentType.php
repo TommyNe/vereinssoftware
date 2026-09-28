@@ -5,37 +5,32 @@ namespace App\Domain\Membership\Enums;
 enum MemberDocumentType: string
 {
     case MembershipApplication =
-    'membership_application';
+        'membership_application';
 
     case SepaMandate =
-    'sepa_mandate';
+        'sepa_mandate';
 
     case Consent =
-    'consent';
+        'consent';
 
     case Certificate =
-    'certificate';
+        'certificate';
 
     case Other =
-    'other';
+        'other';
 
     public function label(): string
     {
         return match ($this) {
-            self::MembershipApplication =>
-            'Mitgliedsantrag',
+            self::MembershipApplication => 'Mitgliedsantrag',
 
-            self::SepaMandate =>
-            'SEPA-Mandat',
+            self::SepaMandate => 'SEPA-Mandat',
 
-            self::Consent =>
-            'Einwilligung',
+            self::Consent => 'Einwilligung',
 
-            self::Certificate =>
-            'Bescheinigung',
+            self::Certificate => 'Bescheinigung',
 
-            self::Other =>
-            'Sonstiges',
+            self::Other => 'Sonstiges',
         };
     }
 }

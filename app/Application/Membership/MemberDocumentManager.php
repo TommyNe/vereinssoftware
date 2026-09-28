@@ -15,8 +15,7 @@ final readonly class MemberDocumentManager
 {
     public function __construct(
         private CurrentClub $currentClub,
-    ) {
-    }
+    ) {}
 
     public function registerStoredFile(
         Member $member,
@@ -44,39 +43,30 @@ final readonly class MemberDocumentManager
 
         return MemberDocument::query()
             ->create([
-                'club_id' =>
-                    $this->currentClub->id(),
+                'club_id' => $this->currentClub->id(),
 
-                'member_id' =>
-                    $member->getKey(),
+                'member_id' => $member->getKey(),
 
-                'type' =>
-                    $type,
+                'type' => $type,
 
-                'original_name' =>
-                    $originalName,
+                'original_name' => $originalName,
 
-                'storage_path' =>
-                    $storagePath,
+                'storage_path' => $storagePath,
 
-                'mime_type' =>
-                    $disk->mimeType(
-                        $storagePath
-                    )
+                'mime_type' => $disk->mimeType(
+                    $storagePath
+                )
                         ?: 'application/octet-stream',
 
-                'size' =>
-                    $disk->size(
-                        $storagePath
-                    ),
+                'size' => $disk->size(
+                    $storagePath
+                ),
 
-                'checksum' =>
-                    $disk->checksum(
-                        $storagePath
-                    ),
+                'checksum' => $disk->checksum(
+                    $storagePath
+                ),
 
-                'uploaded_by' =>
-                    $uploadedBy->getKey(),
+                'uploaded_by' => $uploadedBy->getKey(),
             ]);
     }
 

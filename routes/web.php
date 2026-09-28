@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\ClubInvitationController;
-use Filament\Auth\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\MemberDocumentDownloadController;
+use Filament\Auth\Http\Controllers\EmailVerificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
