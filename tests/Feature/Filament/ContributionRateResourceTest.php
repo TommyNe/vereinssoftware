@@ -9,6 +9,13 @@ use Spatie\Permission\Models\Permission as SpatiePermission;
 
 uses(RefreshDatabase::class);
 
+it('uses the German contribution rate navigation labels', function (): void {
+    expect(ContributionRateResource::getModelLabel())->toBe('Beitragssatz')
+        ->and(ContributionRateResource::getPluralModelLabel())->toBe('Beitragssätze')
+        ->and(ContributionRateResource::getNavigationLabel())->toBe('Beitragssätze')
+        ->and(ContributionRateResource::getNavigationGroup())->toBe('Stammdaten');
+});
+
 it('authorizes the contribution rates page through its policy', function (bool $canManage): void {
     $club = Club::factory()->create();
     $user = User::factory()->create();

@@ -13,14 +13,23 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class ContributionRateResource extends Resource
 {
     protected static ?string $model = ContributionRate::class;
 
+    protected static ?string $modelLabel = 'Beitragssatz';
+
+    protected static ?string $pluralModelLabel = 'Beitragssätze';
+
+    protected static ?string $navigationLabel = 'Beitragssätze';
+
+    protected static string|UnitEnum|null $navigationGroup = 'Stammdaten';
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    protected static ?string $recordTitleAttribute = 'Beitragssatz';
+    protected static ?string $recordTitleAttribute = 'ContributionRate';
 
     public static function form(Schema $schema): Schema
     {

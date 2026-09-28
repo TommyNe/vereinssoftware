@@ -17,6 +17,13 @@ use Spatie\Permission\Models\Permission as SpatiePermission;
 
 uses(RefreshDatabase::class);
 
+it('uses the German contribution type navigation labels', function (): void {
+    expect(ContributionTypeResource::getModelLabel())->toBe('Beitragsart')
+        ->and(ContributionTypeResource::getPluralModelLabel())->toBe('Beitragsarten')
+        ->and(ContributionTypeResource::getNavigationLabel())->toBe('Beitragsarten')
+        ->and(ContributionTypeResource::getNavigationGroup())->toBe('Stammdaten');
+});
+
 function contributionAdministrator(): Club
 {
     $club = Club::factory()->create();
