@@ -20,7 +20,7 @@ class ContributionTypeResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    protected static ?string $recordTitleAttribute = 'Mitgliedsbeitrag';
+    protected static ?string $recordTitleAttribute = 'Beitragsart';
 
     public static function form(Schema $schema): Schema
     {
