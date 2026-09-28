@@ -23,7 +23,7 @@ return new class extends Migration
     {
         Schema::table('member_documents', function (Blueprint $table): void {
             $table->dropForeign(['member_id']);
-            $table->foreign('member_id')->references('id')->on('members')->cascadeOnDelete();
+            $table->foreign('member_id')->references('uuid')->on('members')->cascadeOnDelete();
         });
     }
 };
