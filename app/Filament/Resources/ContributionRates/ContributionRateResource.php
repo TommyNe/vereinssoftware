@@ -20,7 +20,7 @@ class ContributionRateResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    protected static ?string $recordTitleAttribute = 'ContributionRate';
+    protected static ?string $recordTitleAttribute = 'Beitragssatz';
 
     public static function form(Schema $schema): Schema
     {
