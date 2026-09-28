@@ -1,5 +1,6 @@
 services:
     app:
+        image: vereinssoftware-app
         build:
             context: .
             args:
@@ -20,6 +21,23 @@ services:
             postgres:
                 condition: service_healthy
         tty: true
+
+    queue:
+        image: vereinssoftware-app
+        restart: unless-stopped
+        volumes:
+            - .:/app
+        entrypoint: ["php", "artisan", "queue:work"]
+        command: ["--sleep=3", "--tries=3", "--timeout=60", "--no-interaction"]
+        healthcheck:
+            disable: true
+        depends_on:
+            app:
+                condition: service_started
+            postgres:
+                condition: service_healthy
+            mailpit:
+                condition: service_started
 
     postgres:
         image: postgres:17-alpine
@@ -51,9 +69,25 @@ services:
         networks:
             - app
 
+    mailpit:
+        image: axllent/mailpit
+        container_name: mailpit
+        restart: unless-stopped
+        volumes:
+            - mailpit_data:/data
+        ports:
+            - 8025:8025
+            - 1025:1025
+        environment:
+            MP_MAX_MESSAGES: 5000
+            MP_DATABASE: /data/mailpit.db
+            MP_SMTP_AUTH_ACCEPT_ANY: 1
+            MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
 volumes:
     valkey_data:
     postgres_data:
-
+    mailpit_data:
+        driver: local
 networks:
     app:

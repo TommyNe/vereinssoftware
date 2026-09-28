@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ClubInvitationController;
+use App\Http\Controllers\MemberDocumentDownloadController;
 use Filament\Auth\Http\Controllers\EmailVerificationController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,3 +28,12 @@ Route::get(
 ])->name(
     'verification.verify'
 );
+
+Route::get(
+    '/member-documents/{document}/download',
+    MemberDocumentDownloadController::class
+)
+    ->middleware('auth')
+    ->name(
+        'member-documents.download'
+    );

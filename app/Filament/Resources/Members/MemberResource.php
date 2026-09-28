@@ -52,6 +52,7 @@ class MemberResource extends Resource
             ->forCurrentClub()
             ->with([
                 'membershipType',
+                'documents',
                 'departments',
                 'activeFunctionAssignments.clubFunction',
             ]);

@@ -2,6 +2,7 @@
 
 namespace App\Domain\Club\Models;
 
+use App\Domain\Contribution\Models\ContributionType;
 use App\Domain\Membership\Models\ClubFunction;
 use App\Domain\Membership\Models\Department;
 use App\Domain\Membership\Models\Member;
@@ -84,6 +85,16 @@ class Club extends Model
     {
         return $this->hasMany(
             ClubInvitation::class
+        );
+    }
+
+    /**
+     * @return HasMany<ContributionType, $this>
+     */
+    public function contributionTypes(): HasMany
+    {
+        return $this->hasMany(
+            ContributionType::class
         );
     }
 }

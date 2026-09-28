@@ -23,4 +23,9 @@ enum Permission: string
     case ClubUsersView = 'club.users.view';
     case ClubUsersManage = 'club.users.manage';
     case ClubSettingsManage = 'club.settings.manage';
+    case MembersDocumentsManage = 'members.documents.manage';
+    case ContributionTypesManage = 'contribution-types.manage';
+    case ContributionRatesManage = 'contribution-rates.manage';
+    case ContributionsView = 'contributions.view';
+    case MemberContributionsManage = 'members.contributions.manage';
 }
