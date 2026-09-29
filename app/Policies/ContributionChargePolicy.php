@@ -18,6 +18,8 @@ readonly class ContributionChargePolicy
         ContributionCharge $charge,
     ): bool {
         return
+            $this->currentClub->hasClub()
+            &&
             (string) $charge->club_id
             === $this->currentClub->id()
             && $user->can(
@@ -29,10 +31,11 @@ readonly class ContributionChargePolicy
     public function create(
         User $user,
     ): bool {
-        return $user->can(
-            Permission::ContributionChargesManage
-                ->value
-        );
+        return $this->currentClub->hasClub()
+            && $user->can(
+                Permission::ContributionChargesManage
+                    ->value
+            );
     }
 
     public function update(
@@ -40,6 +43,8 @@ readonly class ContributionChargePolicy
         ContributionCharge $charge,
     ): bool {
         return
+            $this->currentClub->hasClub()
+            &&
             (string) $charge->club_id
             === $this->currentClub->id()
             && $user->can(

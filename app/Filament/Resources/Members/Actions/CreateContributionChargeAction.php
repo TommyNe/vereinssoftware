@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Members\Actions;
 
 use App\Application\Club\CurrentClub;
 use App\Application\Contribution\CreateContributionCharge;
+use App\Domain\Contribution\Models\ContributionCharge;
 use App\Domain\Contribution\Models\ContributionType;
 use App\Domain\Membership\Models\Member;
 use App\Models\User;
@@ -34,8 +35,8 @@ final class CreateContributionChargeAction
                 static fn (
                     Member $record
                 ): bool => Gate::allows(
-                    'manageContributions',
-                    $record
+                    'create',
+                    ContributionCharge::class,
                 )
             )
 
@@ -125,10 +126,7 @@ final class CreateContributionChargeAction
                     Member $record,
                     CreateContributionCharge $creator,
                 ): void {
-                    Gate::authorize(
-                        'manageContributions',
-                        $record
-                    );
+                    Gate::authorize('create', ContributionCharge::class);
 
                     $user =
                         Auth::user();

@@ -336,6 +336,21 @@ class MemberInfolist
                                     ->date(
                                         'd.m.Y'
                                     ),
+
+                                TextEntry::make('paid_at')
+                                    ->label('Bezahlt am')
+                                    ->dateTime('d.m.Y H:i')
+                                    ->placeholder('—'),
+
+                                TextEntry::make('cancelled_at')
+                                    ->label('Storniert am')
+                                    ->dateTime('d.m.Y H:i')
+                                    ->placeholder('—'),
+
+                                TextEntry::make('cancellation_reason')
+                                    ->label('Stornogrund')
+                                    ->placeholder('—')
+                                    ->columnSpanFull(),
                             ])
                             ->columns(4),
                     ]),
