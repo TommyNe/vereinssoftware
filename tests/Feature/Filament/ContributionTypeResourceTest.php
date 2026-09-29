@@ -48,6 +48,27 @@ it('lists contribution types without allowing bulk deletion', function (): void 
         ->assertTableBulkActionHidden('delete');
 });
 
+it('shows contribution type values in the table', function (): void {
+    $club = contributionAdministrator();
+    $type = ContributionType::query()->create([
+        'club_id' => $club->getKey(),
+        'code' => 'JAHRESBEITRAG',
+        'name' => 'Jahresbeitrag',
+        'interval' => 'yearly',
+        'sort_order' => 1,
+        'is_active' => true,
+    ]);
+
+    Livewire::test(ListContributionTypes::class)
+        ->assertCanSeeTableRecords([$type])
+        ->assertCanRenderTableColumn('code')
+        ->assertCanRenderTableColumn('name')
+        ->assertCanRenderTableColumn('interval')
+        ->assertSee('JAHRESBEITRAG')
+        ->assertSee('Jahresbeitrag')
+        ->assertSee('Jährlich');
+});
+
 it('creates a contribution type for the current club', function (): void {
     $club = contributionAdministrator();
 

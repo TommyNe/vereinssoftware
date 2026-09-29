@@ -16,6 +16,7 @@ final class ContributionType extends Model
     protected $fillable = [
         'club_id',
         'name',
+        'code',
         'description',
         'interval',
         'is_active',

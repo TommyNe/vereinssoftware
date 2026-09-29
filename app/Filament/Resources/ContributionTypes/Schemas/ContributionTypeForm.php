@@ -20,6 +20,11 @@ class ContributionTypeForm
                     ->required()
                     ->maxLength(255),
 
+                TextInput::make('code')
+                    ->label('Code')
+                    ->maxLength(100)
+                    ->placeholder('z. B. JAHRESBEITRAG'),
+
                 Textarea::make('description')
                     ->label('Beschreibung')
                     ->rows(3),
