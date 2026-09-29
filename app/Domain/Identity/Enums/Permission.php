@@ -28,4 +28,6 @@ enum Permission: string
     case ContributionRatesManage = 'contribution-rates.manage';
     case ContributionsView = 'contributions.view';
     case MemberContributionsManage = 'members.contributions.manage';
+    case ContributionChargesManage = 'contribution-charges.manage';
+    case ContributionChargesView = 'contribution-charges.view';
 }

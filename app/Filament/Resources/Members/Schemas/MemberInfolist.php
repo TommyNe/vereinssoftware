@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Members\Schemas;
 
+use App\Domain\Contribution\Enums\ContributionChargeStatus;
 use App\Domain\Membership\Enums\MemberDocumentType;
 use App\Domain\Membership\Enums\MembershipStatus;
 use App\Domain\Membership\Models\MemberDocument;
@@ -253,6 +254,90 @@ class MemberInfolist
                                     ->placeholder('heute'),
                             ])
                             ->columns(3),
+                    ]),
+                Section::make('Beitragsforderungen')
+                    ->schema([
+                        RepeatableEntry::make(
+                            'contributionCharges'
+                        )
+                            ->label('')
+                            ->schema([
+                                TextEntry::make(
+                                    'description'
+                                )
+                                    ->label(
+                                        'Beschreibung'
+                                    ),
+
+                                TextEntry::make(
+                                    'contributionType.name'
+                                )
+                                    ->label(
+                                        'Beitragsart'
+                                    ),
+
+                                TextEntry::make(
+                                    'amount'
+                                )
+                                    ->label(
+                                        'Betrag'
+                                    )
+                                    ->money('EUR'),
+
+                                TextEntry::make('status')
+                                    ->label('Status')
+                                    ->badge()
+                                    ->formatStateUsing(
+                                        static fn (
+                                            ContributionChargeStatus $state
+                                        ): string => $state->label()
+                                    )
+                                    ->color(
+                                        static fn (
+                                            ContributionChargeStatus $state
+                                        ): string => match ($state) {
+                                            ContributionChargeStatus::Open => 'warning',
+
+                                            ContributionChargeStatus::Paid => 'success',
+
+                                            ContributionChargeStatus::Cancelled => 'gray',
+                                        }
+                                    ),
+
+                                TextEntry::make(
+                                    'period_from'
+                                )
+                                    ->label(
+                                        'Von'
+                                    )
+                                    ->date(
+                                        'd.m.Y'
+                                    ),
+
+                                TextEntry::make(
+                                    'period_until'
+                                )
+                                    ->label(
+                                        'Bis'
+                                    )
+                                    ->date(
+                                        'd.m.Y'
+                                    )
+                                    ->placeholder(
+                                        '—'
+                                    ),
+
+                                TextEntry::make(
+                                    'due_date'
+                                )
+                                    ->label(
+                                        'Fällig'
+                                    )
+                                    ->date(
+                                        'd.m.Y'
+                                    ),
+                            ])
+                            ->columns(4),
                     ]),
                 Section::make('Systeminformationen')
                     ->icon('heroicon-o-information-circle')

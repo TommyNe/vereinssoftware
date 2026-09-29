@@ -59,4 +59,11 @@ final class ContributionType extends Model
             ContributionRate::class
         );
     }
+
+    public function charges(): HasMany
+    {
+        return $this->hasMany(
+            ContributionCharge::class
+        );
+    }
 }
