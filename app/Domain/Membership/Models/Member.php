@@ -8,6 +8,8 @@ use App\Domain\Contribution\Models\ContributionCharge;
 use App\Domain\Contribution\Models\ContributionRunError;
 use App\Domain\Contribution\Models\MemberContributionOverride;
 use App\Domain\Membership\Enums\MembershipStatus;
+use App\Domain\Sepa\Enums\SepaMandateStatus;
+use App\Domain\Sepa\Models\SepaMandate;
 use Carbon\CarbonImmutable;
 use Database\Factories\Domain\Membership\Models\MemberFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,6 +18,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Spatie\EventSourcing\Projections\Projection;
 
 /**
@@ -201,5 +204,31 @@ final class Member extends Projection
             'member_id',
             'uuid',
         );
+    }
+
+    /**
+     * @return HasMany<SepaMandate, $this>
+     */
+    public function sepaMandates(): HasMany
+    {
+        return $this->hasMany(
+            SepaMandate::class,
+            'member_id',
+            'uuid',
+        );
+    }
+
+    public function activeSepaMandate(): HasOne
+    {
+        return $this->hasOne(
+            SepaMandate::class,
+            'member_id',
+            'uuid',
+        )
+            ->where(
+                'status',
+                SepaMandateStatus::Active->value
+            )
+            ->latest();
     }
 }

@@ -354,6 +354,59 @@ class MemberInfolist
                             ])
                             ->columns(4),
                     ]),
+                Section::make('SEPA-Mandat')
+                    ->schema([
+                        TextEntry::make(
+                            'activeSepaMandate.mandate_reference'
+                        )
+                            ->label(
+                                'Mandatsreferenz'
+                            ),
+
+                        TextEntry::make(
+                            'activeSepaMandate.account_holder'
+                        )
+                            ->label(
+                                'Kontoinhaber'
+                            ),
+
+                        TextEntry::make(
+                            'activeSepaMandate.iban'
+                        )
+                            ->label('IBAN')
+                            ->formatStateUsing(
+                                static function (
+                                    ?string $state
+                                ): string {
+                                    if ($state === null) {
+                                        return '—';
+                                    }
+
+                                    $lastFour =
+                                        substr(
+                                            $state,
+                                            -4
+                                        );
+
+                                    return '•••• •••• •••• '
+                                        .$lastFour;
+                                }
+                            ),
+
+                        TextEntry::make(
+                            'activeSepaMandate.signed_at'
+                        )
+                            ->label(
+                                'Mandat erteilt'
+                            )
+                            ->date('d.m.Y'),
+
+                        TextEntry::make(
+                            'activeSepaMandate.status'
+                        )
+                            ->label('Status')
+                            ->badge(),
+                    ]),
                 Section::make('Systeminformationen')
                     ->icon('heroicon-o-information-circle')
                     ->columnSpanFull()

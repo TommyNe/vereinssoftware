@@ -7,6 +7,7 @@ use App\Domain\Audit\Enums\AuditAction;
 use App\Filament\Resources\Members\Actions\AddContributionOverrideAction;
 use App\Filament\Resources\Members\Actions\CancelContributionChargeAction;
 use App\Filament\Resources\Members\Actions\CreateContributionChargeAction;
+use App\Filament\Resources\Members\Actions\CreateSepaMandateAction;
 use App\Filament\Resources\Members\Actions\MarkContributionChargePaidAction;
 use App\Filament\Resources\Members\MemberResource;
 use Filament\Actions\ActionGroup;
@@ -36,6 +37,12 @@ class ViewMember extends ViewRecord
             ])
                 ->label('Beiträge')
                 ->icon('heroicon-o-banknotes'),
+            ActionGroup::make([
+                CreateSepaMandateAction::make(),
+            ])
+                ->label('SEPA')
+                ->icon('heroicon-o-credit-card'),
+
         ];
     }
 }

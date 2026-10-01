@@ -190,4 +190,37 @@ final readonly class MemberPolicy
                 ->value
         );
     }
+
+    public function viewSepaMandates(
+        User $user,
+        Member $member,
+    ): bool {
+        return $this->belongsToCurrentClub(
+            $member
+        ) && $user->can(
+            Permission::SepaMandatesView->value
+        );
+    }
+
+    public function manageSepaMandates(
+        User $user,
+        Member $member,
+    ): bool {
+        return $this->belongsToCurrentClub(
+            $member
+        ) && $user->can(
+            Permission::SepaMandatesManage->value
+        );
+    }
+
+    public function viewSepaBankData(
+        User $user,
+        Member $member,
+    ): bool {
+        return $this->belongsToCurrentClub(
+            $member
+        ) && $user->can(
+            Permission::SepaBankDataView->value
+        );
+    }
 }
