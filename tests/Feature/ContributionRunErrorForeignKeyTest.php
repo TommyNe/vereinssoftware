@@ -1,8 +1,12 @@
 <?php
 
-it('sets the member reference to null when the member is deleted', function (): void {
-    $this->artisan('migrate:fresh', ['--force' => true])->assertSuccessful();
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
+uses(RefreshDatabase::class);
+
+it('sets the member reference to null when the member is deleted', function (): void {
     $clubId = (string) Str::uuid();
     $contributionTypeId = (string) Str::uuid();
     $memberId = (string) Str::uuid();

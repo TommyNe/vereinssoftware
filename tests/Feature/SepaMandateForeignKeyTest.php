@@ -44,7 +44,7 @@ it('rejects a mandate referencing a nonexistent member', function (): void {
     $club = Club::factory()->create();
     $mandate = sepaMandateForeignKeyAttributes($club, (string) Str::uuid());
 
-    expect(fn () => DB::table('sepa_mandates')->insert($mandate))
+    expect(fn () => DB::transaction(fn () => DB::table('sepa_mandates')->insert($mandate)))
         ->toThrow(QueryException::class);
 
     $this->assertDatabaseCount('sepa_mandates', 0);
