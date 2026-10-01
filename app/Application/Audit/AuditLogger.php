@@ -6,13 +6,11 @@ use App\Application\Club\CurrentClub;
 use App\Domain\Audit\Enums\AuditAction;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
 
 final readonly class AuditLogger
 {
     public function __construct(
         private CurrentClub $currentClub,
-        private Request $request,
     ) {}
 
     public function log(
@@ -20,30 +18,37 @@ final readonly class AuditLogger
         Model $subject,
         ?User $user = null,
         array $properties = [],
+        bool $useRequestContext = true,
     ): void {
-        $user ??= $this->request->user();
+        $request = request();
+
+        if ($useRequestContext) {
+            $user ??= $request->user() ?? auth()->user();
+        }
 
         $activity = activity('security')
             ->performedOn($subject)
             ->event($action->value)
             ->withProperties([
-                'club_id' => $this->currentClub->hasClub()
+                'club_id' => $useRequestContext && $this->currentClub->hasClub()
                     ? $this->currentClub->id()
                     : null,
 
-                'ip_address' => $this->request->ip(),
+                'ip_address' => $useRequestContext ? $request->ip() : null,
 
-                'user_agent' => $this->request->userAgent(),
+                'user_agent' => $useRequestContext ? $request->userAgent() : null,
 
-                'method' => $this->request->method(),
+                'method' => $useRequestContext ? $request->method() : null,
 
-                'path' => $this->request->path(),
+                'path' => $useRequestContext ? $request->path() : null,
 
                 ...$properties,
             ]);
 
         if ($user !== null) {
             $activity->causedBy($user);
+        } else {
+            $activity->causedByAnonymous();
         }
 
         $activity->log($action->value);

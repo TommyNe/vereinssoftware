@@ -2,12 +2,13 @@
 
 use App\Domain\Club\Models\Club;
 use App\Domain\Membership\Models\Member;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-it('cascades member document deletion through the member uuid foreign key', function (): void {
-    $this->artisan('migrate:fresh', ['--force' => true])->assertSuccessful();
+uses(RefreshDatabase::class);
 
+it('cascades member document deletion through the member uuid foreign key', function (): void {
     $club = Club::factory()->create();
     $member = Member::factory()->create(['club_id' => $club->getKey()]);
     $documentId = (string) Str::uuid();

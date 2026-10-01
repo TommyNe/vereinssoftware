@@ -16,6 +16,7 @@ final class ContributionType extends Model
     protected $fillable = [
         'club_id',
         'name',
+        'code',
         'description',
         'interval',
         'is_active',
@@ -57,6 +58,13 @@ final class ContributionType extends Model
     {
         return $this->hasMany(
             ContributionRate::class
+        );
+    }
+
+    public function charges(): HasMany
+    {
+        return $this->hasMany(
+            ContributionCharge::class
         );
     }
 }

@@ -55,6 +55,8 @@ class MemberResource extends Resource
                 'documents',
                 'departments',
                 'activeFunctionAssignments.clubFunction',
+                'contributionOverrides.contributionType',
+                'contributionCharges.contributionType',
             ]);
     }
 

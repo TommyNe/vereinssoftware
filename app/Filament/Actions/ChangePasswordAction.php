@@ -2,6 +2,8 @@
 
 namespace App\Filament\Actions;
 
+use App\Application\Audit\AuditLogger;
+use App\Domain\Audit\Enums\AuditAction;
 use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
@@ -64,7 +66,8 @@ final class ChangePasswordAction
 
             ->action(
                 static function (
-                    array $data
+                    array $data,
+                    AuditLogger $audit,
                 ): void {
                     validator(
                         $data,
@@ -104,6 +107,8 @@ final class ChangePasswordAction
                         $data['password'];
 
                     $user->save();
+
+                    $audit->log(AuditAction::UserPasswordChanged, $user, $user);
 
                     Notification::make()
                         ->title(

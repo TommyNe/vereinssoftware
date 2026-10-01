@@ -2,18 +2,29 @@
 
 namespace App\Providers;
 
+use App\Application\Audit\ModelAuditObserver;
+use App\Application\Audit\UserSecurityObserver;
 use App\Application\Club\CurrentClub;
 use App\Domain\Club\Models\Club;
 use App\Domain\Club\Models\ClubInvitation;
+use App\Domain\Contribution\Models\ContributionCharge;
 use App\Domain\Contribution\Models\ContributionRate;
+use App\Domain\Contribution\Models\ContributionRunError;
+use App\Domain\Contribution\Models\ContributionType;
+use App\Domain\Contribution\Models\MemberContributionOverride;
 use App\Domain\Membership\Models\ClubFunction;
 use App\Domain\Membership\Models\Department;
 use App\Domain\Membership\Models\Member;
+use App\Domain\Membership\Models\MemberDocument;
 use App\Domain\Membership\Models\MembershipType;
+use App\Models\User;
 use App\Policies\ClubFunctionPolicy;
 use App\Policies\ClubInvitationPolicy;
 use App\Policies\ClubPolicy;
+use App\Policies\ContributionChargePolicy;
 use App\Policies\ContributionRatePolicy;
+use App\Policies\ContributionRunErrorPolicy;
+use App\Policies\ContributionTypePolicy;
 use App\Policies\DepartmentPolicy;
 use App\Policies\MemberPolicy;
 use App\Policies\MembershipTypePolicy;
@@ -40,7 +51,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        foreach ([ContributionType::class, ContributionRate::class, MemberContributionOverride::class, MemberDocument::class, MembershipType::class, Department::class, ClubFunction::class] as $modelClass) {
+            $modelClass::observe(ModelAuditObserver::class);
+        }
+
+        User::observe(UserSecurityObserver::class);
+
         Gate::policy(ContributionRate::class, ContributionRatePolicy::class);
+        Gate::policy(ContributionType::class, ContributionTypePolicy::class);
+        Gate::policy(ContributionCharge::class, ContributionChargePolicy::class);
+        Gate::policy(ContributionRunError::class, ContributionRunErrorPolicy::class);
 
         if ($this->app->environment('production')) {
             URL::forceScheme('https');

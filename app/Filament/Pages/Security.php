@@ -2,6 +2,8 @@
 
 namespace App\Filament\Pages;
 
+use App\Application\Audit\AuditLogger;
+use App\Domain\Audit\Enums\AuditAction;
 use App\Filament\Actions\LogoutOtherDevicesAction;
 use App\Models\User;
 use Auth;
@@ -92,12 +94,16 @@ final class Security extends Page
             'Die aktuelle Sitzung kann hier nicht beendet werden.',
         );
 
-        DB::table('sessions')
+        $deleted = DB::table('sessions')
             ->where('id', $sessionId)
             ->where(
                 'user_id',
                 $user->getKey(),
             )
             ->delete();
+
+        if ($deleted > 0) {
+            app(AuditLogger::class)->log(AuditAction::SessionRevoked, $user, $user);
+        }
     }
 }

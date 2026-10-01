@@ -6,6 +6,9 @@ Abteilungen, Vereinsfunktionen und Benutzerzugänge.
 
 Das Administrationsinterface steht nach der Anmeldung unter `/admin` bereit.
 
+Eine ausführliche technische und fachliche Dokumentation steht in
+[`docs/PROJEKT-DOKUMENTATION.md`](docs/PROJEKT-DOKUMENTATION.md).
+
 ## Funktionsumfang
 
 - Mitglieder mit persönlichen Daten, Kontakt- und Adressdaten verwalten

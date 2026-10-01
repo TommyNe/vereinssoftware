@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Members\Schemas;
 
+use App\Domain\Contribution\Enums\ContributionChargeStatus;
 use App\Domain\Membership\Enums\MemberDocumentType;
 use App\Domain\Membership\Enums\MembershipStatus;
 use App\Domain\Membership\Models\MemberDocument;
@@ -10,6 +11,7 @@ use App\Filament\Resources\Members\Actions\ChangeAddressAction;
 use App\Filament\Resources\Members\Actions\ChangeContactDataAction;
 use App\Filament\Resources\Members\Actions\ChangeMembershipTypeAction;
 use App\Filament\Resources\Members\Actions\ChangePersonalDataAction;
+use App\Filament\Resources\Members\Actions\CreateSepaMandateAction;
 use App\Filament\Resources\Members\Actions\EndFunctionAction;
 use App\Filament\Resources\Members\Actions\JoinDepartmentAction;
 use App\Filament\Resources\Members\Actions\LeaveDepartmentAction;
@@ -253,6 +255,162 @@ class MemberInfolist
                                     ->placeholder('heute'),
                             ])
                             ->columns(3),
+                    ]),
+                Section::make('Beitragsforderungen')
+                    ->schema([
+                        RepeatableEntry::make(
+                            'contributionCharges'
+                        )
+                            ->label('')
+                            ->schema([
+                                TextEntry::make(
+                                    'description'
+                                )
+                                    ->label(
+                                        'Beschreibung'
+                                    ),
+
+                                TextEntry::make(
+                                    'contributionType.name'
+                                )
+                                    ->label(
+                                        'Beitragsart'
+                                    ),
+
+                                TextEntry::make(
+                                    'amount'
+                                )
+                                    ->label(
+                                        'Betrag'
+                                    )
+                                    ->money('EUR'),
+
+                                TextEntry::make('status')
+                                    ->label('Status')
+                                    ->badge()
+                                    ->formatStateUsing(
+                                        static fn (
+                                            ContributionChargeStatus $state
+                                        ): string => $state->label()
+                                    )
+                                    ->color(
+                                        static fn (
+                                            ContributionChargeStatus $state
+                                        ): string => match ($state) {
+                                            ContributionChargeStatus::Open => 'warning',
+
+                                            ContributionChargeStatus::Paid => 'success',
+
+                                            ContributionChargeStatus::Cancelled => 'gray',
+                                        }
+                                    ),
+
+                                TextEntry::make(
+                                    'period_from'
+                                )
+                                    ->label(
+                                        'Von'
+                                    )
+                                    ->date(
+                                        'd.m.Y'
+                                    ),
+
+                                TextEntry::make(
+                                    'period_until'
+                                )
+                                    ->label(
+                                        'Bis'
+                                    )
+                                    ->date(
+                                        'd.m.Y'
+                                    )
+                                    ->placeholder(
+                                        '—'
+                                    ),
+
+                                TextEntry::make(
+                                    'due_date'
+                                )
+                                    ->label(
+                                        'Fällig'
+                                    )
+                                    ->date(
+                                        'd.m.Y'
+                                    ),
+
+                                TextEntry::make('paid_at')
+                                    ->label('Bezahlt am')
+                                    ->dateTime('d.m.Y H:i')
+                                    ->placeholder('—'),
+
+                                TextEntry::make('cancelled_at')
+                                    ->label('Storniert am')
+                                    ->dateTime('d.m.Y H:i')
+                                    ->placeholder('—'),
+
+                                TextEntry::make('cancellation_reason')
+                                    ->label('Stornogrund')
+                                    ->placeholder('—')
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(4),
+                    ]),
+                Section::make('SEPA-Mandat')
+                    ->key('sepaMandate')
+                    ->headerActions([
+                        CreateSepaMandateAction::make(),
+                    ])
+                    ->schema([
+                        TextEntry::make(
+                            'activeSepaMandate.mandate_reference'
+                        )
+                            ->label(
+                                'Mandatsreferenz'
+                            ),
+
+                        TextEntry::make(
+                            'activeSepaMandate.account_holder'
+                        )
+                            ->label(
+                                'Kontoinhaber'
+                            ),
+
+                        TextEntry::make(
+                            'activeSepaMandate.iban'
+                        )
+                            ->label('IBAN')
+                            ->formatStateUsing(
+                                static function (
+                                    ?string $state
+                                ): string {
+                                    if ($state === null) {
+                                        return '—';
+                                    }
+
+                                    $lastFour =
+                                        substr(
+                                            $state,
+                                            -4
+                                        );
+
+                                    return '•••• •••• •••• '
+                                        .$lastFour;
+                                }
+                            ),
+
+                        TextEntry::make(
+                            'activeSepaMandate.signed_at'
+                        )
+                            ->label(
+                                'Mandat erteilt'
+                            )
+                            ->date('d.m.Y'),
+
+                        TextEntry::make(
+                            'activeSepaMandate.status'
+                        )
+                            ->label('Status')
+                            ->badge(),
                     ]),
                 Section::make('Systeminformationen')
                     ->icon('heroicon-o-information-circle')

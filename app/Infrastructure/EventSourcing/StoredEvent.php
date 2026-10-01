@@ -32,6 +32,9 @@ final class StoredEvent extends EloquentStoredEvent
                 } else {
                     $storedEvent->meta_data->set('source', 'http');
                     $storedEvent->meta_data->set('ip_address', request()->ip());
+                    $storedEvent->meta_data->set('user_agent', request()->userAgent());
+                    $storedEvent->meta_data->set('method', request()->method());
+                    $storedEvent->meta_data->set('path', request()->path());
                 }
             }
         );

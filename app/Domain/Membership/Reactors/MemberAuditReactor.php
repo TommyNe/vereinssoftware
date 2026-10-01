@@ -17,6 +17,7 @@ use App\Domain\Membership\Events\MemberRegistered;
 use App\Domain\Membership\Events\MembershipTypeChanged;
 use App\Domain\Membership\Events\MemberSuspended;
 use App\Domain\Membership\Models\Member;
+use App\Models\User;
 use Spatie\EventSourcing\EventHandlers\Reactors\Reactor;
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
@@ -159,10 +160,25 @@ final class MemberAuditReactor extends Reactor
                 $event->aggregateRootUuid()
             );
 
+        $metadata = $event->metaData();
+        $actorId = $metadata['user_id'] ?? null;
+
         $this->audit->log(
             action: $action,
             subject: $member,
-            properties: $properties,
+            user: $actorId === null ? null : User::query()->find($actorId),
+            properties: [
+                'club_id' => $metadata['club_id'] ?? $member->club_id,
+                'user_id' => $actorId,
+                'ip_address' => $metadata['ip_address'] ?? null,
+                'user_agent' => $metadata['user_agent'] ?? null,
+                'method' => $metadata['method'] ?? null,
+                'path' => $metadata['path'] ?? null,
+                'source' => $metadata['source'] ?? null,
+                'stored_event_id' => $event->storedEventId(),
+                ...$properties,
+            ],
+            useRequestContext: false,
         );
     }
 }

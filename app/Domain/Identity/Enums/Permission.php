@@ -28,4 +28,11 @@ enum Permission: string
     case ContributionRatesManage = 'contribution-rates.manage';
     case ContributionsView = 'contributions.view';
     case MemberContributionsManage = 'members.contributions.manage';
+    case ContributionChargesManage = 'contribution-charges.manage';
+    case ContributionChargesView = 'contribution-charges.view';
+    case ContributionRunsView = 'contribution-runs.view';
+    case ContributionRunsCreate = 'contribution-runs.create';
+    case SepaMandatesView = 'sepa-mandates.view';
+    case SepaMandatesManage = 'sepa-mandates.manage';
+    case SepaBankDataView = 'sepa-bank-data.view';
 }
