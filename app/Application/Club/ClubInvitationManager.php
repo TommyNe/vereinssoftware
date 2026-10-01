@@ -2,6 +2,8 @@
 
 namespace App\Application\Club;
 
+use App\Application\Audit\AuditLogger;
+use App\Domain\Audit\Enums\AuditAction;
 use App\Domain\Club\Models\ClubInvitation;
 use App\Domain\Identity\Enums\Role;
 use App\Models\User;
@@ -16,6 +18,7 @@ final readonly class ClubInvitationManager
     public function __construct(
         private CurrentClub $currentClub,
         private ClubUserManager $clubUserManager,
+        private AuditLogger $audit,
     ) {}
 
     /**
@@ -73,11 +76,12 @@ final readonly class ClubInvitationManager
                     ->whereNull(
                         'revoked_at'
                     )
-                    ->update([
-                        'revoked_at' => now(),
-                    ]);
+                    ->get()
+                    ->each(function (ClubInvitation $invitation): void {
+                        $this->revoke($invitation);
+                    });
 
-                return ClubInvitation::query()
+                $invitation = ClubInvitation::query()
                     ->create([
                         'club_id' => $club->getKey(),
 
@@ -94,6 +98,15 @@ final readonly class ClubInvitationManager
 
                         'expires_at' => now()->addDays(7),
                     ]);
+
+                $this->audit->log(AuditAction::ClubUserInvited, $invitation, $invitedBy, [
+                    'club_id' => $club->getKey(),
+                    'email' => $email,
+                    'role' => $role->value,
+                    'expires_at' => $invitation->expires_at->toIso8601String(),
+                ]);
+
+                return $invitation;
             }
         );
 
@@ -192,6 +205,11 @@ final readonly class ClubInvitationManager
                 $invitation->update([
                     'accepted_at' => now(),
                 ]);
+
+                $this->audit->log(AuditAction::ClubInvitationAccepted, $invitation, $user, [
+                    'club_id' => $invitation->club_id,
+                    'role' => $role->value,
+                ]);
             }
         );
 
@@ -238,6 +256,13 @@ final readonly class ClubInvitationManager
             'expires_at' => now()->addDays(7),
         ]);
 
+        $this->audit->log(AuditAction::ClubInvitationResent, $invitation, properties: [
+            'club_id' => $invitation->club_id,
+            'email' => $invitation->email,
+            'role' => $invitation->role,
+            'expires_at' => $invitation->expires_at->toIso8601String(),
+        ]);
+
         Notification::route(
             'mail',
             $invitation->email,
@@ -275,6 +300,12 @@ final readonly class ClubInvitationManager
 
         $invitation->update([
             'revoked_at' => now(),
+        ]);
+
+        $this->audit->log(AuditAction::ClubInvitationRevoked, $invitation, properties: [
+            'club_id' => $invitation->club_id,
+            'email' => $invitation->email,
+            'role' => $invitation->role,
         ]);
     }
 }

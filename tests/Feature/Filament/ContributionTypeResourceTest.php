@@ -1,6 +1,7 @@
 <?php
 
 use App\Application\Club\CurrentClub;
+use App\Domain\Audit\Enums\AuditAction;
 use App\Domain\Club\Models\Club;
 use App\Domain\Contribution\Models\ContributionRate;
 use App\Domain\Contribution\Models\ContributionType;
@@ -13,6 +14,7 @@ use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Permission as SpatiePermission;
 
 uses(RefreshDatabase::class);
@@ -79,6 +81,9 @@ it('creates a contribution type for the current club', function (): void {
 
     $this->assertDatabaseHas('contribution_types', ['name' => 'Jahresbeitrag', 'club_id' => $club->getKey(), 'interval' => 'yearly']);
     $this->assertDatabaseCount('contribution_types', 1);
+
+    expect(Activity::query()->where('event', AuditAction::ContributionTypeCreated->value)->sole()->getProperty('new.name'))
+        ->toBe('Jahresbeitrag');
 });
 
 it('returns 404 when editing a contribution type from another club', function (): void {
@@ -106,4 +111,8 @@ it('preserves the contribution type and its historical rates when deactivated', 
     $this->assertDatabaseHas('contribution_types', ['id' => $type->getKey(), 'is_active' => false]);
     $this->assertModelExists($rate);
     expect($rate->fresh()->contributionType->getKey())->toBe($type->getKey());
+
+    $activity = Activity::query()->where('event', AuditAction::ContributionTypeUpdated->value)->sole();
+    expect($activity->getProperty('old.is_active'))->toBeTrue()
+        ->and($activity->getProperty('new.is_active'))->toBeFalse();
 });

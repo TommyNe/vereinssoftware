@@ -2,6 +2,8 @@
 
 namespace App\Application\Club;
 
+use App\Application\Audit\AuditLogger;
+use App\Domain\Audit\Enums\AuditAction;
 use App\Domain\Club\Models\Club;
 use App\Domain\Identity\Enums\Role;
 use App\Models\User;
@@ -12,6 +14,7 @@ final readonly class ClubUserManager
 {
     public function __construct(
         private CurrentClub $currentClub,
+        private AuditLogger $audit,
     ) {}
 
     /**
@@ -48,6 +51,11 @@ final readonly class ClubUserManager
                 $user->assignRole(
                     $role->value
                 );
+
+                $this->audit->log(AuditAction::ClubUserAdded, $user, properties: [
+                    'club_id' => $club->getKey(),
+                    'new' => ['roles' => [$role->value]],
+                ]);
             }
         );
     }
@@ -83,9 +91,21 @@ final readonly class ClubUserManager
             club: $club,
         );
 
-        $user->syncRoles([
-            $role->value,
-        ]);
+        $previousRoles = $user->getRoleNames()->all();
+
+        if ($previousRoles === [$role->value]) {
+            return;
+        }
+
+        DB::transaction(function () use ($user, $role, $club, $previousRoles): void {
+            $user->syncRoles([$role->value]);
+
+            $this->audit->log(AuditAction::ClubUserRoleChanged, $user, properties: [
+                'club_id' => $club->getKey(),
+                'old' => ['roles' => $previousRoles],
+                'new' => ['roles' => [$role->value]],
+            ]);
+        });
     }
 
     /**
@@ -120,6 +140,8 @@ final readonly class ClubUserManager
                     club: $club,
                 );
 
+                $previousRoles = $user->getRoleNames()->all();
+
                 foreach (
                     $user->getRoleNames() as $role
                 ) {
@@ -133,6 +155,11 @@ final readonly class ClubUserManager
                     ->detach(
                         $club->getKey()
                     );
+
+                $this->audit->log(AuditAction::ClubUserRemoved, $user, properties: [
+                    'club_id' => $club->getKey(),
+                    'old' => ['roles' => $previousRoles],
+                ]);
             }
         );
     }

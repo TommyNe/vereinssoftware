@@ -17,6 +17,7 @@ use App\Domain\Membership\Models\MembershipType;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Spatie\Activitylog\Models\Activity;
 
 uses(RefreshDatabase::class);
@@ -44,6 +45,7 @@ function runContributionMember(array $fixture, array $attributes = []): Member
 {
     return Member::factory()->create([
         'club_id' => $fixture['club']->getKey(),
+        'joined_at' => '2025-01-01',
         ...$attributes,
     ]);
 }
@@ -340,4 +342,45 @@ it('logs contribution run and charge audit activities', function (): void {
             AuditAction::ContributionChargeCreated->value,
         );
     expect(Activity::query()->where('subject_id', $run->getKey())->count())->toBe(2);
+
+    $started = Activity::query()->where('event', AuditAction::ContributionRunStarted->value)->sole();
+    expect($started->causer_id)->toBe($fixture['user']->getKey())
+        ->and($started->getProperty('contribution_type_id'))->toBe($fixture['type']->getKey())
+        ->and($started->getProperty('calculation_date'))->toBe('2026-06-01')
+        ->and($started->getProperty('period_from'))->toBe('2026-01-01')
+        ->and($started->getProperty('period_until'))->toBe('2026-12-31');
+
+    $completed = Activity::query()->where('event', AuditAction::ContributionRunCompleted->value)->sole();
+    expect($completed->causer_id)->toBe($fixture['user']->getKey())
+        ->and($completed->getProperty('total_amount'))->toBe('25.00');
+
+    expect(Activity::query()->where('event', AuditAction::ContributionChargeCreated->value)->sole()->causer_id)
+        ->toBe($fixture['user']->getKey());
+});
+
+it('audits a failed contribution run with its actor and counters', function (): void {
+    $fixture = runContributionFixture();
+    runContributionRate($fixture['type']);
+    runContributionMember($fixture);
+    $eventName = 'eloquent.retrieved: '.Member::class;
+    Event::listen($eventName, static function (Member $member): void {
+        throw new RuntimeException('Verarbeitung fehlgeschlagen');
+    });
+
+    try {
+        expect(fn () => runContribution($fixture))
+            ->toThrow(RuntimeException::class, 'Verarbeitung fehlgeschlagen');
+    } finally {
+        Event::forget($eventName);
+    }
+
+    $run = ContributionRun::query()->sole();
+    expect($run->status)->toBe(ContributionRunStatus::Failed);
+    $activity = Activity::query()->where('event', AuditAction::ContributionRunFailed->value)->sole();
+    expect($activity->causer_id)->toBe($fixture['user']->getKey())
+        ->and((string) $activity->subject_id)->toBe((string) $run->getKey())
+        ->and($activity->getProperty('exception'))->toBe(RuntimeException::class)
+        ->and($activity->getProperty('charges_created'))->toBe(0)
+        ->and($activity->getProperty('total_amount'))->toBe('0.00');
+    expect(Activity::query()->where('event', AuditAction::ContributionRunCompleted->value)->exists())->toBeFalse();
 });

@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Audit\Enums\AuditAction;
 use App\Domain\Club\Models\Club;
 use App\Domain\Identity\Enums\Permission;
 use App\Domain\Membership\Models\Member;
@@ -7,6 +8,7 @@ use App\Domain\Membership\Models\MemberDocument;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Permission as SpatiePermission;
 
 uses(RefreshDatabase::class);
@@ -50,6 +52,11 @@ test('authorized users download the original file from its club regardless of th
         ->assertDownload('Dokument.pdf')
         ->assertHeader('Content-Type', 'application/pdf')
         ->assertStreamedContent('Document body');
+
+    $activity = Activity::query()->where('event', AuditAction::DocumentDownloaded->value)->sole();
+    expect($activity->causer_id)->toBe($user->getKey())
+        ->and((string) $activity->subject_id)->toBe((string) $document->getKey())
+        ->and($activity->getProperty('club_id'))->toBe($document->club_id);
 });
 
 test('document downloads require authentication', function (): void {
@@ -62,12 +69,16 @@ test('document downloads return 403 without document viewing permission', functi
     [$document, $user] = downloadableMemberDocument(canView: false);
 
     $this->actingAs($user)->get(route('member-documents.download', $document))->assertForbidden();
+
+    expect(Activity::query()->where('event', AuditAction::DocumentDownloaded->value)->exists())->toBeFalse();
 });
 
 test('document downloads return 404 for another clubs documents', function (): void {
     [$document, $user] = downloadableMemberDocument(belongsToClub: false);
 
     $this->actingAs($user)->get(route('member-documents.download', $document))->assertNotFound();
+
+    expect(Activity::query()->where('event', AuditAction::DocumentDownloaded->value)->exists())->toBeFalse();
 });
 
 test('document downloads return 404 when the stored file is missing', function (): void {

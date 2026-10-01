@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Application\Audit\AuditLogger;
 use App\Application\Club\CurrentClub;
+use App\Domain\Audit\Enums\AuditAction;
 use App\Domain\Membership\Models\MemberDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -15,6 +17,7 @@ final class MemberDocumentDownloadController
         MemberDocument $document,
         Request $request,
         CurrentClub $currentClub,
+        AuditLogger $audit,
     ): StreamedResponse {
         $user = $request->user();
         $club = $user->clubs()->whereKey($document->club_id)->firstOrFail();
@@ -34,6 +37,11 @@ final class MemberDocumentDownloadController
                 ),
             404,
         );
+
+        $audit->log(AuditAction::DocumentDownloaded, $document, $user, [
+            'club_id' => $document->club_id,
+            'member_id' => $document->member_id,
+        ]);
 
         return Storage::disk('local')
             ->download(

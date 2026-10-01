@@ -73,10 +73,19 @@ final readonly class RunContributions
             AuditAction::ContributionRunStarted,
             $run,
             $createdBy,
+            [
+                'contribution_type_id' => $contributionType->getKey(),
+                'calculation_date' => $calculationDate->toDateString(),
+                'period_from' => $periodFrom->toDateString(),
+                'period_until' => $periodUntil?->toDateString(),
+                'due_date' => $dueDate->toDateString(),
+                'description' => $description,
+            ],
         );
 
         return $this->process(
-            $run
+            $run,
+            $createdBy,
         );
     }
 
@@ -129,6 +138,7 @@ final readonly class RunContributions
      */
     private function process(
         ContributionRun $run,
+        User $createdBy,
     ): ContributionRun {
         $run->update([
             'status' => ContributionRunStatus::Running,
@@ -163,7 +173,8 @@ final readonly class RunContributions
                     100,
                     function ($members) use (
                         $run,
-                        $result
+                        $result,
+                        $createdBy,
                     ): void {
                         foreach (
                             $members as $member
@@ -172,6 +183,7 @@ final readonly class RunContributions
                                 run: $run,
                                 member: $member,
                                 result: $result,
+                                createdBy: $createdBy,
                             );
                         }
                     },
@@ -202,6 +214,7 @@ final readonly class RunContributions
             $this->audit->log(
                 AuditAction::ContributionRunCompleted,
                 $run,
+                $createdBy,
                 properties: [
                     'status' => $run->status->value,
                     'members_processed' => $result->membersProcessed,
@@ -216,7 +229,25 @@ final readonly class RunContributions
             $run->update([
                 'status' => ContributionRunStatus::Failed,
 
+                'members_processed' => $result->membersProcessed,
+                'charges_created' => $result->chargesCreated,
+                'members_exempt' => $result->membersExempt,
+                'duplicates_skipped' => $result->duplicatesSkipped,
+                'errors_count' => $result->errorsCount,
+                'total_amount' => $result->totalAmount,
+
                 'finished_at' => now(),
+            ]);
+
+            $this->audit->log(AuditAction::ContributionRunFailed, $run, $createdBy, [
+                'status' => ContributionRunStatus::Failed->value,
+                'exception' => $exception::class,
+                'members_processed' => $result->membersProcessed,
+                'charges_created' => $result->chargesCreated,
+                'members_exempt' => $result->membersExempt,
+                'duplicates_skipped' => $result->duplicatesSkipped,
+                'errors_count' => $result->errorsCount,
+                'total_amount' => $result->totalAmount,
             ]);
 
             throw $exception;
@@ -229,6 +260,7 @@ final readonly class RunContributions
         ContributionRun $run,
         Member $member,
         ContributionRunResult $result,
+        User $createdBy,
     ): void {
         $result->membersProcessed++;
 
@@ -292,6 +324,7 @@ final readonly class RunContributions
             $this->audit->log(
                 AuditAction::ContributionChargeCreated,
                 $charge,
+                $createdBy,
                 properties: [
                     'contribution_run_id' => $run->getKey(),
                     'amount' => $charge->amount,

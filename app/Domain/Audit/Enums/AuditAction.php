@@ -4,6 +4,56 @@ namespace App\Domain\Audit\Enums;
 
 enum AuditAction: string
 {
+    case ContributionRunFailed = 'contribution.run.failed';
+
+    case DocumentUploaded = 'member.document.uploaded';
+
+    case DocumentUpdated = 'member.document.updated';
+
+    case DocumentDeleted = 'member.document.deleted';
+
+    case ClubInvitationAccepted = 'club.invitation.accepted';
+
+    case ClubInvitationResent = 'club.invitation.resent';
+
+    case ClubInvitationRevoked = 'club.invitation.revoked';
+
+    case ContributionTypeCreated = 'contribution.type.created';
+
+    case ContributionTypeUpdated = 'contribution.type.updated';
+
+    case ContributionTypeDeleted = 'contribution.type.deleted';
+
+    case ContributionRateCreated = 'contribution.rate.created';
+
+    case ContributionRateUpdated = 'contribution.rate.updated';
+
+    case ContributionRateDeleted = 'contribution.rate.deleted';
+
+    case MemberContributionOverrideCreated = 'member.contribution-override.created';
+
+    case MemberContributionOverrideUpdated = 'member.contribution-override.updated';
+
+    case MemberContributionOverrideDeleted = 'member.contribution-override.deleted';
+
+    case MembershipTypeCreated = 'membership-type.created';
+
+    case MembershipTypeUpdated = 'membership-type.updated';
+
+    case MembershipTypeDeleted = 'membership-type.deleted';
+
+    case DepartmentCreated = 'department.created';
+
+    case DepartmentUpdated = 'department.updated';
+
+    case DepartmentDeleted = 'department.deleted';
+
+    case ClubFunctionCreated = 'club-function.created';
+
+    case ClubFunctionUpdated = 'club-function.updated';
+
+    case ClubFunctionDeleted = 'club-function.deleted';
+
     case MemberViewed = 'member.viewed';
 
     case MemberRegistered = 'member.registered';

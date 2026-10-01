@@ -1,6 +1,7 @@
 <?php
 
 use App\Application\Club\CurrentClub;
+use App\Domain\Audit\Enums\AuditAction;
 use App\Domain\Club\Models\Club;
 use App\Domain\Contribution\Enums\ContributionRunStatus;
 use App\Domain\Contribution\Enums\MemberContributionOverrideType;
@@ -18,6 +19,7 @@ use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Permission as SpatiePermission;
 
 uses(RefreshDatabase::class);
@@ -98,7 +100,7 @@ it('runs contributions from the resource action', function (): void {
         'interval' => 'yearly',
         'is_active' => true,
     ]);
-    $member = Member::factory()->create(['club_id' => $club->getKey()]);
+    $member = Member::factory()->create(['club_id' => $club->getKey(), 'joined_at' => '2025-01-01']);
     ContributionRate::query()->create([
         'club_id' => $club->getKey(),
         'contribution_type_id' => $type->getKey(),
@@ -228,4 +230,11 @@ it('creates four charges totalling 260 euros for full, youth, exempt and overrid
         (string) $exemptMember->getKey() => '0.00',
         (string) $overriddenMember->getKey() => '80.00',
     ]);
+
+    $activity = Activity::query()->where('event', AuditAction::ContributionRunCompleted->value)->sole();
+    expect($activity->causer_id)->toBe($user->getKey())
+        ->and($activity->getProperty('club_id'))->toBe($club->getKey())
+        ->and($activity->getProperty('charges_created'))->toBe(4)
+        ->and($activity->getProperty('members_exempt'))->toBe(1)
+        ->and($activity->getProperty('total_amount'))->toBe('260.00');
 });
