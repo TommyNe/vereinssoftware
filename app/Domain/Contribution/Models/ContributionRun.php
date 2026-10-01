@@ -62,6 +62,9 @@ final class ContributionRun extends Model
         );
     }
 
+    /**
+     * @return BelongsTo<ContributionType, $this>
+     */
     public function contributionType(): BelongsTo
     {
         return $this->belongsTo(
@@ -81,6 +84,13 @@ final class ContributionRun extends Model
     {
         return $this->hasMany(
             ContributionCharge::class
+        );
+    }
+
+    public function errors(): HasMany
+    {
+        return $this->hasMany(
+            ContributionRunError::class
         );
     }
 }

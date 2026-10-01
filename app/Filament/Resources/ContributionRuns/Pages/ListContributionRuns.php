@@ -7,6 +7,7 @@ use App\Application\Contribution\RunContributions;
 use App\Domain\Contribution\Models\ContributionRun;
 use App\Domain\Contribution\Models\ContributionType;
 use App\Filament\Resources\ContributionRuns\ContributionRunResource;
+use App\Filament\Resources\ContributionRuns\Schemas\ContributionRunForm;
 use App\Models\User;
 use Auth;
 use Carbon\CarbonImmutable;
@@ -25,6 +26,7 @@ class ListContributionRuns extends ListRecords
             Action::make('runContributions')
                 ->label('Beitragslauf erstellen')
                 ->icon('heroicon-o-play')
+                ->schema(ContributionRunForm::components())
                 ->action(
                     static function (
                         array $data,

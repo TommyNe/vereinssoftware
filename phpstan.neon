@@ -8,4 +8,6 @@ parameters:
 
     level: 5
 
+    parseModelCastsMethod: true
+
     tmpDir: storage/framework/cache/phpstan

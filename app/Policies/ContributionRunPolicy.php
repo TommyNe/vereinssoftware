@@ -55,4 +55,9 @@ final readonly class ContributionRunPolicy
     ): bool {
         return false;
     }
+
+    public function deleteAny(User $user): bool
+    {
+        return false;
+    }
 }

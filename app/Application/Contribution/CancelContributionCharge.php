@@ -2,7 +2,9 @@
 
 namespace App\Application\Contribution;
 
+use App\Application\Audit\AuditLogger;
 use App\Application\Club\CurrentClub;
+use App\Domain\Audit\Enums\AuditAction;
 use App\Domain\Contribution\Enums\ContributionChargeStatus;
 use App\Domain\Contribution\Models\ContributionCharge;
 use App\Models\User;
@@ -13,6 +15,7 @@ final readonly class CancelContributionCharge
 {
     public function __construct(
         private CurrentClub $currentClub,
+        private AuditLogger $audit,
     ) {}
 
     public function handle(
@@ -55,5 +58,14 @@ final readonly class CancelContributionCharge
 
             'cancelled_by' => $cancelledBy->getKey(),
         ]);
+
+        $this->audit->log(
+            AuditAction::ContributionChargeCancelled,
+            $charge,
+            $cancelledBy,
+            [
+                'reason' => $reason,
+            ],
+        );
     }
 }

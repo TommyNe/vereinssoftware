@@ -5,6 +5,7 @@ namespace App\Domain\Membership\Models;
 use App\Application\Club\CurrentClub;
 use App\Domain\Club\Models\Club;
 use App\Domain\Contribution\Models\ContributionCharge;
+use App\Domain\Contribution\Models\ContributionRunError;
 use App\Domain\Contribution\Models\MemberContributionOverride;
 use App\Domain\Membership\Enums\MembershipStatus;
 use Carbon\CarbonImmutable;
@@ -187,6 +188,18 @@ final class Member extends Projection
         return $this->hasMany(
             ContributionCharge::class,
             'member_id',
+        );
+    }
+
+    /**
+     * @return HasMany<ContributionRunError, $this>
+     */
+    public function contributionRunErrors(): HasMany
+    {
+        return $this->hasMany(
+            ContributionRunError::class,
+            'member_id',
+            'uuid',
         );
     }
 }

@@ -2,7 +2,9 @@
 
 namespace App\Application\Contribution;
 
+use App\Application\Audit\AuditLogger;
 use App\Application\Club\CurrentClub;
+use App\Domain\Audit\Enums\AuditAction;
 use App\Domain\Contribution\Enums\ContributionChargeStatus;
 use App\Domain\Contribution\Models\ContributionCharge;
 use App\Domain\Contribution\Models\ContributionType;
@@ -17,6 +19,7 @@ final readonly class CreateContributionCharge
     public function __construct(
         private CurrentClub $currentClub,
         private ContributionResolver $resolver,
+        private AuditLogger $audit,
     ) {}
 
     public function handle(
@@ -65,7 +68,7 @@ final readonly class CreateContributionCharge
                     periodUntil: $periodUntil,
                 );
 
-                return ContributionCharge::query()
+                $charge = ContributionCharge::query()
                     ->create([
                         'club_id' => $this->currentClub->id(),
 
@@ -89,6 +92,14 @@ final readonly class CreateContributionCharge
                         'created_by' => $createdBy
                             ->getKey(),
                     ]);
+
+                $this->audit->log(
+                    AuditAction::ContributionChargeCreated,
+                    $charge,
+                    $createdBy,
+                );
+
+                return $charge;
             }
         );
     }

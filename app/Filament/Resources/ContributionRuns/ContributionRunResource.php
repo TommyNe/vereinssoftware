@@ -2,12 +2,14 @@
 
 namespace App\Filament\Resources\ContributionRuns;
 
+use App\Domain\Contribution\Models\ContributionRun;
 use App\Filament\Resources\ContributionRuns\Pages\CreateContributionRun;
 use App\Filament\Resources\ContributionRuns\Pages\EditContributionRun;
 use App\Filament\Resources\ContributionRuns\Pages\ListContributionRuns;
+use App\Filament\Resources\ContributionRuns\Pages\ViewContributionRun;
+use App\Filament\Resources\ContributionRuns\RelationManagers\ErrorsRelationManager;
 use App\Filament\Resources\ContributionRuns\Schemas\ContributionRunForm;
 use App\Filament\Resources\ContributionRuns\Tables\ContributionRunsTable;
-use App\Models\ContributionRun;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -22,6 +24,12 @@ class ContributionRunResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'ContributionRun';
 
+    protected static ?string $modelLabel = 'Beitragslauf';
+
+    protected static ?string $pluralModelLabel = 'Beitragsläufe';
+
+    protected static ?string $navigationLabel = 'Beitragsläufe';
+
     public static function form(Schema $schema): Schema
     {
         return ContributionRunForm::configure($schema);
@@ -35,7 +43,7 @@ class ContributionRunResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            ErrorsRelationManager::class,
         ];
     }
 
@@ -44,6 +52,7 @@ class ContributionRunResource extends Resource
         return [
             'index' => ListContributionRuns::route('/'),
             'create' => CreateContributionRun::route('/create'),
+            'view' => ViewContributionRun::route('/{record}'),
             'edit' => EditContributionRun::route('/{record}/edit'),
         ];
     }

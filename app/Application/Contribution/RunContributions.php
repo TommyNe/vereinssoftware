@@ -2,11 +2,14 @@
 
 namespace App\Application\Contribution;
 
+use App\Application\Audit\AuditLogger;
 use App\Application\Club\CurrentClub;
+use App\Domain\Audit\Enums\AuditAction;
 use App\Domain\Contribution\Enums\ContributionChargeStatus;
 use App\Domain\Contribution\Enums\ContributionRunStatus;
 use App\Domain\Contribution\Models\ContributionCharge;
 use App\Domain\Contribution\Models\ContributionRun;
+use App\Domain\Contribution\Models\ContributionRunError;
 use App\Domain\Contribution\Models\ContributionType;
 use App\Domain\Membership\Enums\MembershipStatus;
 use App\Domain\Membership\Models\Member;
@@ -20,6 +23,7 @@ final readonly class RunContributions
     public function __construct(
         private CurrentClub $currentClub,
         private ContributionResolver $resolver,
+        private AuditLogger $audit,
     ) {}
 
     /**
@@ -64,6 +68,12 @@ final readonly class RunContributions
 
                     'created_by' => $createdBy->getKey(),
                 ]);
+
+        $this->audit->log(
+            AuditAction::ContributionRunStarted,
+            $run,
+            $createdBy,
+        );
 
         return $this->process(
             $run
@@ -147,7 +157,7 @@ final readonly class RunContributions
                     $run->calculation_date
                 )
 
-                ->orderBy('id')
+                ->orderBy('uuid')
 
                 ->chunkById(
                     100,
@@ -164,7 +174,9 @@ final readonly class RunContributions
                                 result: $result,
                             );
                         }
-                    }
+                    },
+                    'uuid',
+                    'uuid',
                 );
 
             $run->update([
@@ -186,6 +198,20 @@ final readonly class RunContributions
 
                 'finished_at' => now(),
             ]);
+
+            $this->audit->log(
+                AuditAction::ContributionRunCompleted,
+                $run,
+                properties: [
+                    'status' => $run->status->value,
+                    'members_processed' => $result->membersProcessed,
+                    'charges_created' => $result->chargesCreated,
+                    'members_exempt' => $result->membersExempt,
+                    'duplicates_skipped' => $result->duplicatesSkipped,
+                    'errors_count' => $result->errorsCount,
+                    'total_amount' => $result->totalAmount,
+                ],
+            );
         } catch (Throwable $exception) {
             $run->update([
                 'status' => ContributionRunStatus::Failed,
@@ -263,6 +289,15 @@ final readonly class RunContributions
                         'created_by' => $run->created_by,
                     ]);
 
+            $this->audit->log(
+                AuditAction::ContributionChargeCreated,
+                $charge,
+                properties: [
+                    'contribution_run_id' => $run->getKey(),
+                    'amount' => $charge->amount,
+                ],
+            );
+
             $result->chargesCreated++;
 
             $result->totalAmount =
@@ -273,6 +308,16 @@ final readonly class RunContributions
                 );
         } catch (Throwable $exception) {
             $result->errorsCount++;
+
+            ContributionRunError::query()->create([
+                'contribution_run_id' => $run->getKey(),
+                'member_id' => $member->getKey(),
+                'message' => mb_substr(
+                    $exception->getMessage(),
+                    0,
+                    1000,
+                ),
+            ]);
 
             report(
                 $exception

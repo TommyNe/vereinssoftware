@@ -4,6 +4,7 @@ use App\Application\Club\CurrentClub;
 use App\Application\Contribution\CancelContributionCharge;
 use App\Application\Contribution\CreateContributionCharge;
 use App\Application\Contribution\MarkContributionChargePaid;
+use App\Domain\Audit\Enums\AuditAction;
 use App\Domain\Club\Models\Club;
 use App\Domain\Contribution\Enums\ContributionChargeStatus;
 use App\Domain\Contribution\Enums\MemberContributionOverrideType;
@@ -15,6 +16,7 @@ use App\Domain\Membership\Models\Member;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Activitylog\Models\Activity;
 
 uses(RefreshDatabase::class);
 
@@ -252,6 +254,7 @@ it('allows an open charge to be paid and stores paid_at', function (): void {
     $charge = $charge->fresh();
     expect($charge->status)->toBe(ContributionChargeStatus::Paid);
     expect($charge->paid_at->toDateTimeString())->toBe($paidAt->toDateTimeString());
+    expect(Activity::query()->where('event', AuditAction::ContributionChargePaid->value)->exists())->toBeTrue();
 });
 
 it('rejects paying an already paid charge', function (): void {
@@ -279,6 +282,7 @@ it('cancels a charge without deleting it and stores the reason', function (): vo
     expect($charge->cancellation_reason)->toBe('Doppelte Erfassung');
     expect($charge->cancelled_by)->toBe($fixture['user']->getKey());
     expect($charge->cancelled_at)->not->toBeNull();
+    expect(Activity::query()->where('event', AuditAction::ContributionChargeCancelled->value)->exists())->toBeTrue();
 });
 
 it('rejects paying or cancelling a charge from another club', function (): void {

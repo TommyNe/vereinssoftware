@@ -7,6 +7,7 @@ use App\Domain\Club\Models\Club;
 use App\Domain\Club\Models\ClubInvitation;
 use App\Domain\Contribution\Models\ContributionCharge;
 use App\Domain\Contribution\Models\ContributionRate;
+use App\Domain\Contribution\Models\ContributionRunError;
 use App\Domain\Contribution\Models\ContributionType;
 use App\Domain\Membership\Models\ClubFunction;
 use App\Domain\Membership\Models\Department;
@@ -17,6 +18,7 @@ use App\Policies\ClubInvitationPolicy;
 use App\Policies\ClubPolicy;
 use App\Policies\ContributionChargePolicy;
 use App\Policies\ContributionRatePolicy;
+use App\Policies\ContributionRunErrorPolicy;
 use App\Policies\ContributionTypePolicy;
 use App\Policies\DepartmentPolicy;
 use App\Policies\MemberPolicy;
@@ -47,6 +49,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(ContributionRate::class, ContributionRatePolicy::class);
         Gate::policy(ContributionType::class, ContributionTypePolicy::class);
         Gate::policy(ContributionCharge::class, ContributionChargePolicy::class);
+        Gate::policy(ContributionRunError::class, ContributionRunErrorPolicy::class);
 
         if ($this->app->environment('production')) {
             URL::forceScheme('https');

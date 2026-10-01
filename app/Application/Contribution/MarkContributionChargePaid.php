@@ -2,7 +2,9 @@
 
 namespace App\Application\Contribution;
 
+use App\Application\Audit\AuditLogger;
 use App\Application\Club\CurrentClub;
+use App\Domain\Audit\Enums\AuditAction;
 use App\Domain\Contribution\Enums\ContributionChargeStatus;
 use App\Domain\Contribution\Models\ContributionCharge;
 use Carbon\CarbonImmutable;
@@ -12,6 +14,7 @@ final readonly class MarkContributionChargePaid
 {
     public function __construct(
         private CurrentClub $currentClub,
+        private AuditLogger $audit,
     ) {}
 
     public function handle(
@@ -41,5 +44,13 @@ final readonly class MarkContributionChargePaid
 
             'paid_at' => $paidAt,
         ]);
+
+        $this->audit->log(
+            AuditAction::ContributionChargePaid,
+            $charge,
+            properties: [
+                'paid_at' => $paidAt->toIso8601String(),
+            ],
+        );
     }
 }
