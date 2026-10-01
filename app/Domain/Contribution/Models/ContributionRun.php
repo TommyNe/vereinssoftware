@@ -3,41 +3,43 @@
 namespace App\Domain\Contribution\Models;
 
 use App\Domain\Club\Models\Club;
-use App\Domain\Contribution\Enums\ContributionChargeStatus;
-use App\Domain\Membership\Models\Member;
+use App\Domain\Contribution\Enums\ContributionRunStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-final class ContributionCharge extends Model
+final class ContributionRun extends Model
 {
     use HasUuids;
 
     protected $fillable = [
         'club_id',
-        'member_id',
         'contribution_type_id',
-        'contribution_run_id',
         'status',
-        'amount',
-        'description',
+        'calculation_date',
         'period_from',
         'period_until',
         'due_date',
-        'paid_at',
-        'cancelled_at',
-        'cancellation_reason',
+        'description',
+        'members_processed',
+        'charges_created',
+        'members_exempt',
+        'duplicates_skipped',
+        'errors_count',
+        'total_amount',
+        'started_at',
+        'finished_at',
         'created_by',
-        'cancelled_by',
     ];
 
     protected function casts(): array
     {
         return [
-            'status' => ContributionChargeStatus::class,
+            'status' => ContributionRunStatus::class,
 
-            'amount' => 'decimal:2',
+            'calculation_date' => 'immutable_date',
 
             'period_from' => 'immutable_date',
 
@@ -45,9 +47,11 @@ final class ContributionCharge extends Model
 
             'due_date' => 'immutable_date',
 
-            'paid_at' => 'immutable_datetime',
+            'total_amount' => 'decimal:2',
 
-            'cancelled_at' => 'immutable_datetime',
+            'started_at' => 'immutable_datetime',
+
+            'finished_at' => 'immutable_datetime',
         ];
     }
 
@@ -55,13 +59,6 @@ final class ContributionCharge extends Model
     {
         return $this->belongsTo(
             Club::class
-        );
-    }
-
-    public function member(): BelongsTo
-    {
-        return $this->belongsTo(
-            Member::class
         );
     }
 
@@ -80,26 +77,10 @@ final class ContributionCharge extends Model
         );
     }
 
-    public function cancelledBy(): BelongsTo
+    public function charges(): HasMany
     {
-        return $this->belongsTo(
-            User::class,
-            'cancelled_by'
-        );
-    }
-
-    public function isOverdue(): bool
-    {
-        return
-            $this->status
-            === ContributionChargeStatus::Open
-            && $this->due_date->isPast();
-    }
-
-    public function contributionRun(): BelongsTo
-    {
-        return $this->belongsTo(
-            ContributionRun::class
+        return $this->hasMany(
+            ContributionCharge::class
         );
     }
 }

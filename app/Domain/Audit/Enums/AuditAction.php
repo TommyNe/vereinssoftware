@@ -88,4 +88,19 @@ enum AuditAction: string
 
     case SessionRevoked =
         'user.session-revoked';
+
+    case ContributionRunStarted =
+        'contribution.run.started';
+
+    case ContributionRunCompleted =
+        'contribution.run.completed';
+
+    case ContributionChargeCreated =
+        'contribution.charge.created';
+
+    case ContributionChargePaid =
+        'contribution.charge.paid';
+
+    case ContributionChargeCancelled =
+        'contribution.charge.cancelled';
 }
