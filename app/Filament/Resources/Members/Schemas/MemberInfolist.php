@@ -11,6 +11,7 @@ use App\Filament\Resources\Members\Actions\ChangeAddressAction;
 use App\Filament\Resources\Members\Actions\ChangeContactDataAction;
 use App\Filament\Resources\Members\Actions\ChangeMembershipTypeAction;
 use App\Filament\Resources\Members\Actions\ChangePersonalDataAction;
+use App\Filament\Resources\Members\Actions\CreateSepaMandateAction;
 use App\Filament\Resources\Members\Actions\EndFunctionAction;
 use App\Filament\Resources\Members\Actions\JoinDepartmentAction;
 use App\Filament\Resources\Members\Actions\LeaveDepartmentAction;
@@ -355,6 +356,10 @@ class MemberInfolist
                             ->columns(4),
                     ]),
                 Section::make('SEPA-Mandat')
+                    ->key('sepaMandate')
+                    ->headerActions([
+                        CreateSepaMandateAction::make(),
+                    ])
                     ->schema([
                         TextEntry::make(
                             'activeSepaMandate.mandate_reference'

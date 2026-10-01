@@ -12,6 +12,7 @@ use App\Filament\Resources\Members\MemberResource;
 use App\Filament\Resources\Members\Pages\ViewMember;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -64,7 +65,8 @@ it('allows a user with management permission to create a mandate from the member
 
     Livewire::actingAs($fixture['user'])
         ->test(ViewMember::class, ['record' => $fixture['member']->getKey()])
-        ->callAction('createSepaMandate', data: [
+        ->assertActionVisible(TestAction::make('createSepaMandate')->schemaComponent('sepaMandate'))
+        ->callAction(TestAction::make('createSepaMandate')->schemaComponent('sepaMandate'), data: [
             'mandate_reference' => 'SEPA-UI-001',
             'account_holder' => 'Max Mustermann',
             'iban' => 'de89 3704 0044 0532 0130 00',
@@ -87,8 +89,8 @@ it('prevents a user without management permission from creating a mandate', func
 
     Livewire::actingAs($fixture['user'])
         ->test(ViewMember::class, ['record' => $fixture['member']->getKey()])
-        ->assertActionHidden('createSepaMandate')
-        ->call('mountAction', 'createSepaMandate')
+        ->assertActionDoesNotExist(TestAction::make('createSepaMandate')->schemaComponent('sepaMandate'))
+        ->call('mountAction', 'createSepaMandate', [], ['schemaComponent' => 'sepaMandate'])
         ->call('callMountedAction');
 
     $callback = CreateSepaMandateAction::make()->getActionFunction();
