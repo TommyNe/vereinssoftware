@@ -15,24 +15,19 @@ class MembersTable
     {
         return $table
             ->columns([
-                TextColumn::make('uuid')
-                    ->label('UUID'),
                 TextColumn::make('club.name')
                     ->label('Verein')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('member_number')
                     ->label('Mitgliedsnummer')
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->searchable(),
                 TextColumn::make('first_name')
                     ->label('Vorname')
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->searchable(),
                 TextColumn::make('last_name')
                     ->label('Nachname')
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->searchable(),
                 TextColumn::make('birth_date')
                     ->label('Geburtsdatum')
                     ->date()
