@@ -14,8 +14,7 @@ final readonly class ClubSepaConfigurationManager
 {
     public function __construct(
         private CurrentClub $currentClub,
-    ) {
-    }
+    ) {}
 
     public function save(
         string $creditorIdentifier,
@@ -100,68 +99,48 @@ final readonly class ClubSepaConfigurationManager
                 if ($existing === null) {
                     return ClubSepaConfiguration::query()
                         ->create([
-                            'club_id' =>
-                                $clubId,
+                            'club_id' => $clubId,
 
-                            'creditor_identifier' =>
-                                $creditorIdentifier,
+                            'creditor_identifier' => $creditorIdentifier,
 
-                            'account_holder' =>
-                                $accountHolder,
+                            'account_holder' => $accountHolder,
 
-                            'iban' =>
-                                $iban,
+                            'iban' => $iban,
 
-                            'bic' =>
-                                $bic,
+                            'bic' => $bic,
 
-                            'mandate_reference_prefix' =>
-                                $mandateReferencePrefix,
+                            'mandate_reference_prefix' => $mandateReferencePrefix,
 
-                            'default_lead_days' =>
-                                $defaultLeadDays,
+                            'default_lead_days' => $defaultLeadDays,
 
-                            'default_purpose' =>
-                                $defaultPurpose,
+                            'default_purpose' => $defaultPurpose,
 
-                            'is_active' =>
-                                $isActive,
+                            'is_active' => $isActive,
 
-                            'created_by' =>
-                                $user->getKey(),
+                            'created_by' => $user->getKey(),
 
-                            'updated_by' =>
-                                $user->getKey(),
+                            'updated_by' => $user->getKey(),
                         ]);
                 }
 
                 $existing->update([
-                    'creditor_identifier' =>
-                        $creditorIdentifier,
+                    'creditor_identifier' => $creditorIdentifier,
 
-                    'account_holder' =>
-                        $accountHolder,
+                    'account_holder' => $accountHolder,
 
-                    'iban' =>
-                        $iban,
+                    'iban' => $iban,
 
-                    'bic' =>
-                        $bic,
+                    'bic' => $bic,
 
-                    'mandate_reference_prefix' =>
-                        $mandateReferencePrefix,
+                    'mandate_reference_prefix' => $mandateReferencePrefix,
 
-                    'default_lead_days' =>
-                        $defaultLeadDays,
+                    'default_lead_days' => $defaultLeadDays,
 
-                    'default_purpose' =>
-                        $defaultPurpose,
+                    'default_purpose' => $defaultPurpose,
 
-                    'is_active' =>
-                        $isActive,
+                    'is_active' => $isActive,
 
-                    'updated_by' =>
-                        $user->getKey(),
+                    'updated_by' => $user->getKey(),
                 ]);
 
                 return $existing->refresh();
@@ -194,7 +173,7 @@ final readonly class ClubSepaConfigurationManager
          * 8 oder 11 Zeichen.
          */
         if (
-            !preg_match(
+            ! preg_match(
                 '/^[A-Z0-9]{8}([A-Z0-9]{3})?$/',
                 $bic
             )
@@ -224,7 +203,7 @@ final readonly class ClubSepaConfigurationManager
         }
 
         if (
-            !preg_match(
+            ! preg_match(
                 '/^[A-Z0-9._-]+$/',
                 $prefix
             )

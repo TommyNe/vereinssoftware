@@ -131,4 +131,10 @@ enum AuditAction: string
     case SepaMandateRevoked = 'sepa.mandate.revoked';
 
     case SepaBankDataViewed = 'sepa.bank-data.viewed';
+
+    case SepaDebitRunPrepared = 'sepa.debit-run.prepared';
+
+    case SepaDebitRunCancelled = 'sepa.debit-run.cancelled';
+
+    case SepaDebitRunExported = 'sepa.debit-run.exported';
 }

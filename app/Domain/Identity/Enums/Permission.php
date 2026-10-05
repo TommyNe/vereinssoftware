@@ -38,4 +38,8 @@ enum Permission: string
     case SepaConfigurationView = 'sepa-configuration.view';
     case SepaConfigurationManage = 'sepa-configuration.manage';
     case SepaConfigurationBankDataView = 'sepa-configuration.bank-data.view';
+    case SepaDebitRunsView = 'sepa-debit-runs.view';
+    case SepaDebitRunsCreate = 'sepa-debit-runs.create';
+    case SepaDebitRunsExport = 'sepa-debit-runs.export';
+    case SepaDebitRunsCancel = 'sepa-debit-runs.cancel';
 }

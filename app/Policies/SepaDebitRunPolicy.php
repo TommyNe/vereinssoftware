@@ -4,10 +4,10 @@ namespace App\Policies;
 
 use App\Application\Club\CurrentClub;
 use App\Domain\Identity\Enums\Permission;
-use App\Domain\Sepa\Models\ClubSepaConfiguration;
+use App\Domain\Sepa\Models\SepaDebitRun;
 use App\Models\User;
 
-final readonly class ClubSepaConfigurationPolicy
+final readonly class SepaDebitRunPolicy
 {
     public function __construct(
         private CurrentClub $currentClub,
@@ -17,21 +17,19 @@ final readonly class ClubSepaConfigurationPolicy
         User $user,
     ): bool {
         return $user->can(
-            Permission::SepaConfigurationView
-                ->value
+            Permission::SepaDebitRunsView->value
         );
     }
 
     public function view(
         User $user,
-        ClubSepaConfiguration $configuration,
+        SepaDebitRun $run,
     ): bool {
         return
-            (string) $configuration->club_id
+            (string) $run->club_id
             === $this->currentClub->id()
             && $user->can(
-                Permission::SepaConfigurationView
-                    ->value
+                Permission::SepaDebitRunsView->value
             );
     }
 
@@ -39,27 +37,20 @@ final readonly class ClubSepaConfigurationPolicy
         User $user,
     ): bool {
         return $user->can(
-            Permission::SepaConfigurationManage
-                ->value
+            Permission::SepaDebitRunsCreate->value
         );
     }
 
     public function update(
         User $user,
-        ClubSepaConfiguration $configuration,
+        SepaDebitRun $run,
     ): bool {
-        return
-            (string) $configuration->club_id
-            === $this->currentClub->id()
-            && $user->can(
-                Permission::SepaConfigurationManage
-                    ->value
-            );
+        return false;
     }
 
     public function delete(
         User $user,
-        ClubSepaConfiguration $configuration,
+        SepaDebitRun $run,
     ): bool {
         return false;
     }

@@ -29,17 +29,13 @@ final class ClubSepaConfiguration extends Model
     protected function casts(): array
     {
         return [
-            'iban' =>
-                'encrypted',
+            'iban' => 'encrypted',
 
-            'bic' =>
-                'encrypted',
+            'bic' => 'encrypted',
 
-            'default_lead_days' =>
-                'integer',
+            'default_lead_days' => 'integer',
 
-            'is_active' =>
-                'boolean',
+            'is_active' => 'boolean',
         ];
     }
 

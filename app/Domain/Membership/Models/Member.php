@@ -218,6 +218,9 @@ final class Member extends Projection
         );
     }
 
+    /**
+     * @return HasOne<SepaMandate, $this>
+     */
     public function activeSepaMandate(): HasOne
     {
         return $this->hasOne(

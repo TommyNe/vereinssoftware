@@ -11,8 +11,7 @@ final readonly class MandateReferenceGenerator
 {
     public function __construct(
         private CurrentClub $currentClub,
-    ) {
-    }
+    ) {}
 
     public function generate(
         Member $member,
@@ -74,8 +73,7 @@ final readonly class MandateReferenceGenerator
         for (
             $counter = 2;
             $counter <= 999;
-            ++$counter
-        ) {
+            $counter++) {
             $candidate =
                 $base
                 .'-'
