@@ -585,12 +585,20 @@ einer Bereinigung des temporären Verzeichnisses fehlen.
 - Deutsches [Benutzerhandbuch](docs/BENUTZERHANDBUCH.md) mit Arbeitsabläufen,
   Testdaten, Fehlerhilfe, Checklisten und ausdrücklich beschriebenen UI-Grenzen;
   Verlinkung in der README.
+- Filament-Seite **Hilfe → Benutzerhandbuch** mit formatierter Anzeige der
+  Markdown-Quelldatei, Tabellen und Inhaltsverzeichnis-Ankern. Der Zugriff ist
+  für angemeldete Benutzer des ausgewählten Vereins ohne zusätzliche
+  Verwaltungsberechtigung möglich. HTML und unsichere Links werden gefiltert.
+- Fünf Feature-Tests für Handbuchanzeige, Navigation, Anmeldung,
+  Vereinszugriff und sichere Markdown-Ausgabe: bestanden mit 17 Assertions.
+  PHPStan für die neue Seite und Pint wurden erfolgreich ausgeführt.
 
 **Verifizierter Stand:** Die zuletzt ausgeführte vollständige Pest-Suite
 bestand mit 339 Tests und 1.510 Assertions; PHPStan meldete keine Fehler und
 Pint lief erfolgreich. Details und Prüfgrenzen stehen in Abschnitt 14. Für
-diese reine Dokumentationsaktualisierung wurden diese Codeprüfungen nicht
-erneut ausgeführt.
+das damalige Zusammenführen der Dokumentation wurden diese Codeprüfungen
+nicht erneut ausgeführt. Die später ergänzte Handbuchseite wurde gesondert
+mit den oben genannten fünf Feature-Tests und PHPStan geprüft.
 
 **Noch offen / nicht vollständig verifiziert:**
 

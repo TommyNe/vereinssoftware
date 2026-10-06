@@ -13,6 +13,10 @@ genannten Aktionsnamen maßgeblich.
 
 ## Inhalt
 
+Du kannst dieses Handbuch direkt in der Verwaltung unter
+**Hilfe → Benutzerhandbuch** öffnen. Dafür brauchst du einen angemeldeten
+Benutzerzugang zum ausgewählten Verein, aber keine besonderen Verwaltungsrechte.
+
 1. [Die wichtigsten Begriffe](#1-die-wichtigsten-begriffe)
 2. [Anmelden und den richtigen Verein auswählen](#2-anmelden-und-den-richtigen-verein-auswählen)
 3. [Die Oberfläche bedienen](#3-die-oberfläche-bedienen)
