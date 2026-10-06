@@ -28,22 +28,22 @@ final class SepaDebitRun extends Model
         'cancellation_reason',
         'created_by',
         'cancelled_by',
+        'xml_format',
+        'xml_storage_path',
+        'xml_sha256',
+        'xml_generated_at',
     ];
 
     protected function casts(): array
     {
         return [
             'status' => SepaDebitRunStatus::class,
-
             'collection_date' => 'immutable_date',
-
             'total_amount' => 'decimal:2',
-
             'prepared_at' => 'immutable_datetime',
-
             'exported_at' => 'immutable_datetime',
-
             'cancelled_at' => 'immutable_datetime',
+            'xml_generated_at' => 'immutable_datetime',
         ];
     }
 
@@ -62,6 +62,7 @@ final class SepaDebitRun extends Model
         );
     }
 
+    /** @return HasMany<SepaDebitItem, $this> */
     public function items(): HasMany
     {
         return $this->hasMany(

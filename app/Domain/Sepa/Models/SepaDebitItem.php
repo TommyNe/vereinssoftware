@@ -52,6 +52,7 @@ final class SepaDebitItem extends Model
         );
     }
 
+    /** @return BelongsTo<ContributionCharge, $this> */
     public function charge(): BelongsTo
     {
         return $this->belongsTo(
@@ -71,6 +72,7 @@ final class SepaDebitItem extends Model
         );
     }
 
+    /** @return BelongsTo<SepaMandate, $this> */
     public function mandate(): BelongsTo
     {
         return $this->belongsTo(

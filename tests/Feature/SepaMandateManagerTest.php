@@ -5,6 +5,7 @@ use App\Application\Sepa\SepaMandateManager;
 use App\Domain\Club\Models\Club;
 use App\Domain\Membership\Models\Member;
 use App\Domain\Sepa\Enums\SepaMandateStatus;
+use App\Domain\Sepa\Models\ClubSepaConfiguration;
 use App\Domain\Sepa\Models\SepaMandate;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -71,6 +72,57 @@ it('assigns the current club and creator to the mandate', function (): void {
         'status' => SepaMandateStatus::Active->value,
     ]);
     expect($mandate->member->club_id)->toBe(app(CurrentClub::class)->id());
+});
+
+it('preserves an explicit mandate reference without requiring a SEPA configuration', function (): void {
+    $club = Club::factory()->create();
+    app(CurrentClub::class)->set($club);
+    $member = Member::factory()->create(['club_id' => $club->getKey()]);
+    $user = User::factory()->create();
+
+    $mandate = createTestSepaMandate($member, $user, reference: '  EXPLICIT-001  ');
+
+    expect($mandate->mandate_reference)->toBe('EXPLICIT-001');
+    $this->assertDatabaseCount('club_sepa_configurations', 0);
+    $this->assertDatabaseHas('sepa_mandates', [
+        'id' => $mandate->getKey(),
+        'mandate_reference' => 'EXPLICIT-001',
+    ]);
+});
+
+it('generates a reference from the configured prefix when no reference is supplied', function (string $reference): void {
+    $club = Club::factory()->create();
+    app(CurrentClub::class)->set($club);
+    ClubSepaConfiguration::query()->create([
+        'club_id' => $club->getKey(),
+        'creditor_identifier' => 'DE98ZZZ09999999999',
+        'account_holder' => 'Testverein e.V.',
+        'iban' => 'DE89370400440532013000',
+        'mandate_reference_prefix' => 'SV-',
+        'is_active' => true,
+    ]);
+    $member = Member::factory()->create(['club_id' => $club->getKey(), 'member_number' => '1001']);
+    $user = User::factory()->create();
+
+    $mandate = createTestSepaMandate($member, $user, reference: $reference);
+
+    expect($mandate->mandate_reference)->toBe('SV-1001');
+    $this->assertDatabaseHas('sepa_mandates', [
+        'id' => $mandate->getKey(),
+        'mandate_reference' => 'SV-1001',
+    ]);
+})->with(['empty' => '', 'whitespace' => '   ']);
+
+it('rejects automatic reference generation without a SEPA configuration', function (): void {
+    $club = Club::factory()->create();
+    app(CurrentClub::class)->set($club);
+    $member = Member::factory()->create(['club_id' => $club->getKey()]);
+    $user = User::factory()->create();
+
+    expect(fn () => createTestSepaMandate($member, $user, reference: ''))
+        ->toThrow(DomainException::class, 'Für den Verein ist keine SEPA-Konfiguration vorhanden.');
+
+    $this->assertDatabaseCount('sepa_mandates', 0);
 });
 
 it('rejects members belonging to another club without writing a mandate', function (): void {

@@ -15,7 +15,9 @@
         "spatie/laravel-activitylog": "^5.1",
         "spatie/laravel-event-sourcing": "^7.15",
         "spatie/laravel-permission": "^8.3",
-        "ext-bcmath": "*"
+        "ext-bcmath": "*",
+        "ext-dom": "*",
+        "ext-libxml": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

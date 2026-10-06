@@ -249,6 +249,23 @@ it('shows an error without creating a run when the collection date is too early'
     $this->assertDatabaseCount('sepa_debit_runs', 0);
 });
 
+it('shows the XML action matching the debit run status for users with export permission', function (
+    SepaDebitRunStatus $status,
+    string $visibleAction,
+    string $hiddenAction,
+): void {
+    $club = sepaDebitRunTableClub();
+    auth()->user()->givePermissionTo(SpatiePermission::findOrCreate(Permission::SepaDebitRunsExport->value, 'web'));
+    $run = createTableSepaDebitRun($club, ['status' => $status]);
+
+    Livewire::test(ViewSepaDebitRun::class, ['record' => $run->getKey()])
+        ->assertActionVisible($visibleAction)
+        ->assertActionHidden($hiddenAction);
+})->with([
+    'prepared' => [SepaDebitRunStatus::Prepared, 'exportXml', 'downloadXml'],
+    'exported' => [SepaDebitRunStatus::Exported, 'downloadXml', 'exportXml'],
+]);
+
 function createViewSepaDebitItem(
     SepaDebitRun $run,
     string $firstName,

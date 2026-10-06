@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ClubInvitationController;
 use App\Http\Controllers\MemberDocumentDownloadController;
+use App\Http\Controllers\SepaDebitRunDownloadController;
+use App\Http\Middleware\SetCurrentClub;
 use Filament\Auth\Http\Controllers\EmailVerificationController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,3 +39,13 @@ Route::get(
     ->name(
         'member-documents.download'
     );
+
+Route::get(
+    '/sepa-debit-runs/{run}/download',
+    SepaDebitRunDownloadController::class,
+)
+    ->middleware([
+        'auth',
+        SetCurrentClub::class,
+    ])
+    ->name('sepa-debit-runs.download');

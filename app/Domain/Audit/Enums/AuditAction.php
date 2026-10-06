@@ -137,4 +137,6 @@ enum AuditAction: string
     case SepaDebitRunCancelled = 'sepa.debit-run.cancelled';
 
     case SepaDebitRunExported = 'sepa.debit-run.exported';
+
+    case SepaDebitRunDownloaded = 'sepa.debit-run.downloaded';
 }

@@ -44,8 +44,11 @@ final readonly class SepaMandateManager
             );
         }
 
-        $mandateReference =
-            $this->referenceGenerator->generate($member);
+        $mandateReference = trim($mandateReference);
+
+        if ($mandateReference === '') {
+            $mandateReference = $this->referenceGenerator->generate($member);
+        }
 
         if ($mandateReference === '') {
             throw new DomainException(
