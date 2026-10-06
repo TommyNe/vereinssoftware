@@ -2,6 +2,15 @@
 
 **Stand: 6. Oktober 2026**
 
+> **Achtung: Alpha-Version**
+>
+> Die Software befindet sich noch in der Alpha-Phase und ist kein stabiler
+> Produktivrelease. Funktionen, Bedienung, Datenstrukturen und Arbeitsabläufe
+> können sich grundlegend ändern. Änderungen können inkompatibel mit bisherigen
+> Versionen sein und Anpassungen oder Datenmigrationen erfordern. Dieses Handbuch
+> beschreibt den aktuellen Entwicklungsstand; spätere Versionen können davon
+> abweichen.
+
 Dieses Handbuch richtet sich an Personen, die Mitglieder, Beiträge und
 Benutzerzugänge eines Vereins verwalten. Es beschreibt die vorhandene
 Browseroberfläche einschließlich des SEPA-XML-Exports.
