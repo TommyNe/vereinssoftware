@@ -8,6 +8,7 @@ use App\Application\Sepa\Xml\Pain008XmlBuilder;
 use App\Application\Sepa\Xml\ValidatePain008Xml;
 use App\Domain\Audit\Enums\AuditAction;
 use App\Domain\Sepa\Enums\SepaDebitRunStatus;
+use App\Domain\Sepa\Models\SepaDebitItem;
 use App\Domain\Sepa\Models\SepaDebitRun;
 use DomainException;
 use Illuminate\Support\Facades\Crypt;
@@ -22,6 +23,7 @@ final readonly class ExportSepaDebitRun
         private ValidateSepaDebitRunForExport $validator,
         private Pain008XmlBuilder $builder,
         private ValidatePain008Xml $xmlValidator,
+        private SepaIdentifierGenerator $identifierGenerator,
         private AuditLogger $audit,
     ) {}
 
@@ -76,6 +78,26 @@ final readonly class ExportSepaDebitRun
                 $configuration,
             );
 
+            if ($lockedRun->message_id === null) {
+                $lockedRun->message_id = $this->identifierGenerator
+                    ->messageId($lockedRun);
+            }
+
+            if ($lockedRun->payment_information_id === null) {
+                $lockedRun->payment_information_id = $this->identifierGenerator
+                    ->paymentInformationId($lockedRun);
+            }
+
+            $lockedRun->save();
+
+            $lockedRun->items()
+                ->whereNull('end_to_end_id')
+                ->eachById(function (SepaDebitItem $item): void {
+                    $item->update([
+                        'end_to_end_id' => $this->identifierGenerator->endToEndId($item),
+                    ]);
+                });
+
             $xml = $this->builder->build(
                 $lockedRun,
                 $configuration,
@@ -118,6 +140,9 @@ final readonly class ExportSepaDebitRun
                     'club_id' => $lockedRun->club_id,
                     'run_id' => $lockedRun->getKey(),
                     'xml_format' => $lockedRun->xml_format,
+                    'xml_storage_path' => $lockedRun->xml_storage_path,
+                    'xml_generated_at' => $lockedRun->xml_generated_at,
+                    'exported_at' => $lockedRun->exported_at,
                     'items_count' => $lockedRun->items_count,
                     'total_amount' => $lockedRun->total_amount,
                     'xml_sha256' => $lockedRun->xml_sha256,

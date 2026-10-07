@@ -139,4 +139,20 @@ enum AuditAction: string
     case SepaDebitRunExported = 'sepa.debit-run.exported';
 
     case SepaDebitRunDownloaded = 'sepa.debit-run.downloaded';
+
+    case SepaDebitRunSubmitted = 'sepa.debit-run.submitted';
+
+    case SepaDebitRunAccepted = 'sepa.debit-run.accepted';
+
+    case SepaDebitRunRejected = 'sepa.debit-run.rejected';
+
+    case SepaDebitItemAccepted = 'sepa.debit-item.accepted';
+
+    case SepaDebitItemRejected = 'sepa.debit-item.rejected';
+
+    case SepaDebitItemSettled = 'sepa.debit-item.settled';
+
+    case SepaDebitItemReturned = 'sepa.debit-item.returned';
+
+    case SepaDebitItemRefunded = 'sepa.debit-item.refunded';
 }

@@ -2,6 +2,9 @@
 
 use App\Application\Club\CurrentClub;
 use App\Application\Sepa\ExportSepaDebitRun;
+use App\Application\Sepa\RecordSepaDebitItemEvent;
+use App\Application\Sepa\RefreshSepaDebitRunStatus;
+use App\Application\Sepa\SubmitSepaDebitRun;
 use App\Domain\Audit\Enums\AuditAction;
 use App\Domain\Club\Models\Club;
 use App\Domain\Contribution\Enums\ContributionChargeStatus;
@@ -9,7 +12,10 @@ use App\Domain\Contribution\Models\ContributionCharge;
 use App\Domain\Contribution\Models\ContributionType;
 use App\Domain\Identity\Enums\Permission;
 use App\Domain\Membership\Models\Member;
+use App\Domain\Sepa\Enums\SepaDebitEventType;
+use App\Domain\Sepa\Enums\SepaDebitItemStatus;
 use App\Domain\Sepa\Enums\SepaDebitRunStatus;
+use App\Domain\Sepa\Enums\SepaSubmissionMethod;
 use App\Domain\Sepa\Models\ClubSepaConfiguration;
 use App\Domain\Sepa\Models\SepaDebitRun;
 use App\Domain\Sepa\Models\SepaMandate;
@@ -94,7 +100,8 @@ function sepaDebitRunAuditFixture(bool $canExport = true): array
     return compact('club', 'user', 'run');
 }
 
-function assertSepaDebitRunAudit(Activity $activity, SepaDebitRun $run, User $user): void
+/** @param array{xml_storage_path?: string, xml_generated_at?: string, exported_at?: string} $exportMetadata */
+function assertSepaDebitRunAudit(Activity $activity, SepaDebitRun $run, User $user, array $exportMetadata = []): void
 {
     expect($activity->log_name)->toBe('security');
     expect($activity->subject->is($run))->toBeTrue();
@@ -103,11 +110,112 @@ function assertSepaDebitRunAudit(Activity $activity, SepaDebitRun $run, User $us
         'club_id' => $run->club_id,
         'run_id' => $run->getKey(),
         'xml_format' => 'pain.008.001.08',
+        ...$exportMetadata,
         'items_count' => 1,
         'total_amount' => '25.00',
         'xml_sha256' => $run->xml_sha256,
     ]);
 }
+
+it('audits submission once with only the run identifier', function (): void {
+    $fixture = sepaDebitRunAuditFixture();
+    $run = app(ExportSepaDebitRun::class)->handle($fixture['run']);
+    $service = app(SubmitSepaDebitRun::class);
+    $service->handle($run, SepaSubmissionMethod::BankPortal, now()->toImmutable(), 'BANK-123', $fixture['user']);
+
+    expect(fn () => $service->handle($run, SepaSubmissionMethod::BankPortal, now()->toImmutable(), 'BANK-123', $fixture['user']))
+        ->toThrow(DomainException::class);
+
+    $activities = Activity::query()->where('event', AuditAction::SepaDebitRunSubmitted->value)->get();
+    expect($activities)->toHaveCount(1);
+    $activity = $activities->sole();
+    expect($activity->subject->is($run))->toBeTrue();
+    expect($activity->causer->is($fixture['user']))->toBeTrue();
+    expect($activity->properties->except(['ip_address', 'user_agent', 'method', 'path'])->all())->toBe([
+        'club_id' => $run->club_id,
+        'run_id' => $run->getKey(),
+    ]);
+});
+
+it('audits item feedback with only identifiers and the normalized reason code', function (SepaDebitItemStatus $current, SepaDebitEventType $type, AuditAction $action): void {
+    $fixture = sepaDebitRunAuditFixture();
+    $item = $fixture['run']->items()->sole();
+    $item->update(['status' => $current, 'end_to_end_id' => 'E2E-123']);
+    $service = app(RecordSepaDebitItemEvent::class);
+
+    $service->handle($item, $type, now()->toImmutable(), ' am04 ', $item->iban, $item->account_holder, 'manual', $fixture['user']);
+
+    $activities = Activity::query()->where('event', $action->value)->get();
+    expect($activities)->toHaveCount(1);
+    $activity = $activities->sole();
+    expect($activity->log_name)->toBe('security');
+    expect($activity->subject->is($item))->toBeTrue();
+    expect($activity->causer->is($fixture['user']))->toBeTrue();
+    expect($activity->properties->except(['ip_address', 'user_agent', 'method', 'path'])->all())->toBe([
+        'club_id' => $item->club_id,
+        'run_id' => $fixture['run']->getKey(),
+        'item_id' => $item->getKey(),
+        'end_to_end_id' => 'E2E-123',
+        'reason_code' => 'AM04',
+    ]);
+    expect($activity->attribute_changes->all())->toBeEmpty();
+})->with([
+    'accepted' => [SepaDebitItemStatus::Submitted, SepaDebitEventType::Accepted, AuditAction::SepaDebitItemAccepted],
+    'rejected' => [SepaDebitItemStatus::Submitted, SepaDebitEventType::Rejected, AuditAction::SepaDebitItemRejected],
+    'settled' => [SepaDebitItemStatus::Accepted, SepaDebitEventType::Settled, AuditAction::SepaDebitItemSettled],
+    'returned' => [SepaDebitItemStatus::Settled, SepaDebitEventType::Returned, AuditAction::SepaDebitItemReturned],
+    'refunded' => [SepaDebitItemStatus::Settled, SepaDebitEventType::Refunded, AuditAction::SepaDebitItemRefunded],
+]);
+
+it('does not audit item feedback when the transition is invalid or the club differs', function (bool $foreignClub): void {
+    $fixture = sepaDebitRunAuditFixture();
+    $item = $fixture['run']->items()->sole();
+    if ($foreignClub) {
+        $item->update(['status' => SepaDebitItemStatus::Submitted]);
+        app(CurrentClub::class)->set(Club::factory()->create());
+    }
+
+    expect(fn () => app(RecordSepaDebitItemEvent::class)->handle(
+        $item, SepaDebitEventType::Accepted, now()->toImmutable(), null, null, null, 'manual', $fixture['user'],
+    ))->toThrow(DomainException::class);
+
+    $this->assertDatabaseMissing('activity_log', ['event' => AuditAction::SepaDebitItemAccepted->value]);
+    $this->assertDatabaseCount('sepa_debit_item_events', 0);
+})->with(['invalid transition' => false, 'foreign club' => true]);
+
+it('audits accepted and rejected run status changes once with only the run identifier', function (SepaDebitItemStatus $itemStatus, AuditAction $action): void {
+    $fixture = sepaDebitRunAuditFixture();
+    $run = $fixture['run'];
+    $run->update(['status' => SepaDebitRunStatus::Submitted]);
+    $run->items()->sole()->update(['status' => $itemStatus]);
+
+    app(RefreshSepaDebitRunStatus::class)->handle($run);
+    app(RefreshSepaDebitRunStatus::class)->handle($run);
+
+    $activities = Activity::query()->where('event', $action->value)->get();
+    expect($activities)->toHaveCount(1);
+    $activity = $activities->sole();
+    expect($activity->subject->is($run))->toBeTrue();
+    expect($activity->causer->is($fixture['user']))->toBeTrue();
+    expect($activity->properties->except(['ip_address', 'user_agent', 'method', 'path'])->all())->toBe([
+        'club_id' => $run->club_id,
+        'run_id' => $run->getKey(),
+    ]);
+})->with([
+    'accepted' => [SepaDebitItemStatus::Accepted, AuditAction::SepaDebitRunAccepted],
+    'rejected' => [SepaDebitItemStatus::Rejected, AuditAction::SepaDebitRunRejected],
+]);
+
+it('does not audit acceptance or rejection for a run with pending positions', function (): void {
+    $fixture = sepaDebitRunAuditFixture();
+    $run = $fixture['run'];
+    $run->items()->sole()->update(['status' => SepaDebitItemStatus::Submitted]);
+
+    app(RefreshSepaDebitRunStatus::class)->handle($run);
+
+    $this->assertDatabaseMissing('activity_log', ['event' => AuditAction::SepaDebitRunAccepted->value]);
+    $this->assertDatabaseMissing('activity_log', ['event' => AuditAction::SepaDebitRunRejected->value]);
+});
 
 it('audits a successful export once with only safe run metadata', function (): void {
     $fixture = sepaDebitRunAuditFixture();
@@ -117,7 +225,11 @@ it('audits a successful export once with only safe run metadata', function (): v
 
     $activities = Activity::query()->where('event', AuditAction::SepaDebitRunExported->value)->get();
     expect($activities)->toHaveCount(1);
-    assertSepaDebitRunAudit($activities->sole(), $run, $fixture['user']);
+    assertSepaDebitRunAudit($activities->sole(), $run, $fixture['user'], [
+        'xml_storage_path' => $run->xml_storage_path,
+        'xml_generated_at' => '2026-10-06T12:00:00.000000Z',
+        'exported_at' => '2026-10-06T12:00:00.000000Z',
+    ]);
     expect($run->status)->toBe(SepaDebitRunStatus::Exported);
     Storage::disk('local')->assertExists($run->xml_storage_path);
 });

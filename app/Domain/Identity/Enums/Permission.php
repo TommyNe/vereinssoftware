@@ -42,4 +42,6 @@ enum Permission: string
     case SepaDebitRunsCreate = 'sepa-debit-runs.create';
     case SepaDebitRunsExport = 'sepa-debit-runs.export';
     case SepaDebitRunsCancel = 'sepa-debit-runs.cancel';
+    case SepaDebitRunsSubmit = 'sepa-debit-runs.submit';
+    case SepaDebitItemsFeedbackManage = 'sepa-debit-items.feedback.manage';
 }

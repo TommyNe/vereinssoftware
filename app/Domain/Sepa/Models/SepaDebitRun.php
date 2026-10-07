@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 final class SepaDebitRun extends Model
 {
@@ -32,6 +33,8 @@ final class SepaDebitRun extends Model
         'xml_storage_path',
         'xml_sha256',
         'xml_generated_at',
+        'message_id',
+        'payment_information_id',
     ];
 
     protected function casts(): array
@@ -74,5 +77,13 @@ final class SepaDebitRun extends Model
     public function errors(): HasMany
     {
         return $this->hasMany(SepaDebitRunError::class);
+    }
+
+    public function submission(): HasOne
+    {
+        return $this->hasOne(
+            SepaDebitSubmission::class,
+            'sepa_debit_run_id'
+        );
     }
 }
