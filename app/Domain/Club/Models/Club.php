@@ -7,12 +7,14 @@ use App\Domain\Membership\Models\ClubFunction;
 use App\Domain\Membership\Models\Department;
 use App\Domain\Membership\Models\Member;
 use App\Domain\Membership\Models\MembershipType;
+use App\Domain\Sepa\Models\ClubSepaConfiguration;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Club extends Model
 {
@@ -95,6 +97,16 @@ class Club extends Model
     {
         return $this->hasMany(
             ContributionType::class
+        );
+    }
+
+    /**
+     * @return HasOne<ClubSepaConfiguration, $this>
+     */
+    public function sepaConfiguration(): HasOne
+    {
+        return $this->hasOne(
+            ClubSepaConfiguration::class
         );
     }
 }

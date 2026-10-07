@@ -6,6 +6,9 @@ Abteilungen, Vereinsfunktionen und Benutzerzugänge.
 
 Das Administrationsinterface steht nach der Anmeldung unter `/admin` bereit.
 
+Eine Anleitung für die tägliche Vereinsverwaltung findest du im
+[`Benutzerhandbuch`](docs/BENUTZERHANDBUCH.md).
+
 Eine ausführliche technische und fachliche Dokumentation steht in
 [`docs/PROJEKT-DOKUMENTATION.md`](docs/PROJEKT-DOKUMENTATION.md).
 

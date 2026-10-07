@@ -58,10 +58,14 @@ final class ContributionCharge extends Model
         );
     }
 
+    /**
+     * @return BelongsTo<Member, $this>
+     */
     public function member(): BelongsTo
     {
         return $this->belongsTo(
-            Member::class
+            Member::class,
+            'member_id',
         );
     }
 

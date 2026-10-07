@@ -58,99 +58,85 @@ enum AuditAction: string
 
     case MemberRegistered = 'member.registered';
 
-    case MemberAddressChanged =
-        'member.address.changed';
+    case MemberAddressChanged = 'member.address.changed';
 
-    case MemberContactDataChanged =
-        'member.contact-data.changed';
+    case MemberContactDataChanged = 'member.contact-data.changed';
 
-    case MemberPersonalDataChanged =
-        'member.personal-data.changed';
+    case MemberPersonalDataChanged = 'member.personal-data.changed';
 
-    case MembershipTypeChanged =
-        'member.membership-type.changed';
+    case MembershipTypeChanged = 'member.membership-type.changed';
 
-    case MemberSuspended =
-        'member.suspended';
+    case MemberSuspended = 'member.suspended';
 
-    case MemberReactivated =
-        'member.reactivated';
+    case MemberReactivated = 'member.reactivated';
 
-    case MemberLeftClub =
-        'member.left-club';
+    case MemberLeftClub = 'member.left-club';
 
-    case DepartmentJoined =
-        'member.department.joined';
+    case DepartmentJoined = 'member.department.joined';
 
-    case DepartmentLeft =
-        'member.department.left';
+    case DepartmentLeft = 'member.department.left';
 
-    case FunctionAssigned =
-        'member.function.assigned';
+    case FunctionAssigned = 'member.function.assigned';
 
-    case FunctionEnded =
-        'member.function.ended';
+    case FunctionEnded = 'member.function.ended';
 
-    case MembersExported =
-        'members.exported';
+    case MembersExported = 'members.exported';
 
-    case DocumentViewed =
-        'member.document.viewed';
+    case DocumentViewed = 'member.document.viewed';
 
-    case DocumentDownloaded =
-        'member.document.downloaded';
+    case DocumentDownloaded = 'member.document.downloaded';
 
-    case ClubUserInvited =
-        'club.user.invited';
+    case ClubUserInvited = 'club.user.invited';
 
-    case ClubUserAdded =
-        'club.user.added';
+    case ClubUserAdded = 'club.user.added';
 
-    case ClubUserRemoved =
-        'club.user.removed';
+    case ClubUserRemoved = 'club.user.removed';
 
-    case ClubUserRoleChanged =
-        'club.user.role-changed';
+    case ClubUserRoleChanged = 'club.user.role-changed';
 
-    case UserProfileChanged =
-        'user.profile.changed';
+    case UserProfileChanged = 'user.profile.changed';
 
-    case UserEmailChanged =
-        'user.email.changed';
+    case UserEmailChanged = 'user.email.changed';
 
-    case UserPasswordChanged =
-        'user.password.changed';
+    case UserPasswordChanged = 'user.password.changed';
 
-    case UserMfaEnabled =
-        'user.mfa.enabled';
+    case UserMfaEnabled = 'user.mfa.enabled';
 
-    case UserMfaDisabled =
-        'user.mfa.disabled';
+    case UserMfaDisabled = 'user.mfa.disabled';
 
-    case UserLoggedIn =
-        'user.logged-in';
+    case UserLoggedIn = 'user.logged-in';
 
-    case UserLoggedOut =
-        'user.logged-out';
+    case UserLoggedOut = 'user.logged-out';
 
-    case OtherSessionsLoggedOut =
-        'user.other-sessions-logged-out';
+    case OtherSessionsLoggedOut = 'user.other-sessions-logged-out';
 
-    case SessionRevoked =
-        'user.session-revoked';
+    case SessionRevoked = 'user.session-revoked';
 
-    case ContributionRunStarted =
-        'contribution.run.started';
+    case ContributionRunStarted = 'contribution.run.started';
 
-    case ContributionRunCompleted =
-        'contribution.run.completed';
+    case ContributionRunCompleted = 'contribution.run.completed';
 
-    case ContributionChargeCreated =
-        'contribution.charge.created';
+    case ContributionChargeCreated = 'contribution.charge.created';
 
-    case ContributionChargePaid =
-        'contribution.charge.paid';
+    case ContributionChargePaid = 'contribution.charge.paid';
 
-    case ContributionChargeCancelled =
-        'contribution.charge.cancelled';
+    case ContributionChargeCancelled = 'contribution.charge.cancelled';
+
+    case SepaConfigurationCreated = 'sepa.configuration.created';
+
+    case SepaConfigurationChanged = 'sepa.configuration.changed';
+
+    case SepaMandateCreated = 'sepa.mandate.created';
+
+    case SepaMandateRevoked = 'sepa.mandate.revoked';
+
+    case SepaBankDataViewed = 'sepa.bank-data.viewed';
+
+    case SepaDebitRunPrepared = 'sepa.debit-run.prepared';
+
+    case SepaDebitRunCancelled = 'sepa.debit-run.cancelled';
+
+    case SepaDebitRunExported = 'sepa.debit-run.exported';
+
+    case SepaDebitRunDownloaded = 'sepa.debit-run.downloaded';
 }

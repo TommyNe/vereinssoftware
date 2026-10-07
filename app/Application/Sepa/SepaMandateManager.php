@@ -16,6 +16,7 @@ final readonly class SepaMandateManager
 {
     public function __construct(
         private CurrentClub $currentClub,
+        private MandateReferenceGenerator $referenceGenerator,
     ) {}
 
     /**
@@ -43,10 +44,11 @@ final readonly class SepaMandateManager
             );
         }
 
-        $mandateReference =
-            trim(
-                $mandateReference
-            );
+        $mandateReference = trim($mandateReference);
+
+        if ($mandateReference === '') {
+            $mandateReference = $this->referenceGenerator->generate($member);
+        }
 
         if ($mandateReference === '') {
             throw new DomainException(
