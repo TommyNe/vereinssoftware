@@ -103,7 +103,7 @@ it('rejects a second configuration record for the same club', function (): void 
     $duplicate = $configuration->replicate();
     $duplicate->creditor_identifier = 'DE98ZZZ08888888888';
 
-    expect(fn () => $duplicate->save())->toThrow(QueryException::class);
+    expect(fn () => DB::transaction(fn () => $duplicate->save()))->toThrow(QueryException::class);
 
     $this->assertDatabaseCount('club_sepa_configurations', 1);
     $this->assertModelExists($configuration);
