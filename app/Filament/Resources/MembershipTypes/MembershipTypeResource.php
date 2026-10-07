@@ -27,7 +27,7 @@ final class MembershipTypeResource extends Resource
         'Mitgliedsarten';
 
     protected static string|UnitEnum|null $navigationGroup =
-        'Stammdaten';
+        'Vereinsstruktur';
 
     protected static string|BackedEnum|null $navigationIcon =
         'heroicon-o-tag';

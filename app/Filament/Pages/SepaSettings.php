@@ -26,11 +26,11 @@ final class SepaSettings extends Page
 
     protected static string|UnitEnum|null $navigationGroup = 'Einstellungen';
 
-    protected static ?string $navigationLabel = 'SEPA';
+    protected static ?string $navigationLabel = 'SEPA-Einstellungen';
 
     protected static ?string $title = 'SEPA-Konfiguration';
 
-    protected static ?int $navigationSort = 50;
+    protected static ?int $navigationSort = 30;
 
     protected string $view = 'filament.pages.sepa-settings';
 

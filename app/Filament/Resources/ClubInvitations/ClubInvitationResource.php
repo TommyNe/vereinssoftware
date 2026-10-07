@@ -33,7 +33,7 @@ final class ClubInvitationResource extends Resource
         'Einladungen';
 
     protected static string|UnitEnum|null $navigationGroup =
-        'Administration';
+        'Einstellungen';
 
     protected static string|BackedEnum|null $navigationIcon =
         'heroicon-o-envelope';

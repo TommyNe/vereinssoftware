@@ -22,6 +22,8 @@ class MemberResource extends Resource
 
     protected static ?string $navigationLabel = 'Mitglieder';
 
+    protected static ?int $navigationSort = 10;
+
     protected static string|\BackedEnum|null $navigationIcon =
         'heroicon-o-user-group';
 

@@ -86,7 +86,7 @@ it('shows debit runs with formatted dates, status, counts and euro amounts', fun
         ->assertTableColumnFormattedStateSet('status', $label, $run)
         ->assertTableColumnStateSet('items_count', 12, $run)
         ->assertTableColumnStateSet('errors_count', 2, $run)
-        ->assertTableColumnFormattedStateSet('total_amount', '€300.50', $run)
+        ->assertTableColumnFormattedStateSet('total_amount', "300,50\u{00A0}€", $run)
         ->assertTableColumnFormattedStateSet('created_at', '05.10.2026 14:30', $run)
         ->assertSee('Bezeichnung')
         ->assertSee('Einzug')
