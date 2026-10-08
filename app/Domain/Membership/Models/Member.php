@@ -7,6 +7,7 @@ use App\Domain\Club\Models\Club;
 use App\Domain\Contribution\Models\ContributionCharge;
 use App\Domain\Contribution\Models\ContributionRunError;
 use App\Domain\Contribution\Models\MemberContributionOverride;
+use App\Domain\Contribution\Models\Payment;
 use App\Domain\Membership\Enums\MembershipStatus;
 use App\Domain\Sepa\Enums\SepaMandateStatus;
 use App\Domain\Sepa\Models\SepaMandate;
@@ -233,5 +234,14 @@ final class Member extends Projection
                 SepaMandateStatus::Active->value
             )
             ->latest();
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(
+            Payment::class,
+            'member_id',
+            'uuid',
+        );
     }
 }

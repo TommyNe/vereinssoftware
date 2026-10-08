@@ -25,9 +25,11 @@ class ContributionTypeResource extends Resource
 
     protected static ?string $navigationLabel = 'Beitragsarten';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Stammdaten';
+    protected static string|UnitEnum|null $navigationGroup = 'Finanzen';
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
+
+    protected static ?int $navigationSort = 30;
 
     protected static ?string $recordTitleAttribute = 'ContributionType';
 

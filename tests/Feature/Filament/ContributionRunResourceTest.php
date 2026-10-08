@@ -76,7 +76,7 @@ it('shows contribution runs in the table', function (): void {
         ->assertCanRenderTableColumn('total_amount')
         ->assertSee('Jahresbeitrag 2026')
         ->assertSee('Abgeschlossen')
-        ->assertSee('€300.00');
+        ->assertSee("300,00\u{00A0}€");
 });
 
 it('runs contributions from the resource action', function (): void {

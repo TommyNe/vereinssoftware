@@ -27,7 +27,7 @@ final class ClubFunctionResource extends Resource
         'Vereinsfunktionen';
 
     protected static string|UnitEnum|null $navigationGroup =
-        'Stammdaten';
+        'Vereinsstruktur';
 
     protected static string|BackedEnum|null $navigationIcon =
         'heroicon-o-briefcase';
