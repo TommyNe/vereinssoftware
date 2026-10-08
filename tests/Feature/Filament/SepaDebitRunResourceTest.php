@@ -1,12 +1,14 @@
 <?php
 
 use App\Application\Club\CurrentClub;
+use App\Application\Contribution\CreatePaymentFromSettledSepaItem;
 use App\Application\Sepa\PrepareSepaDebitRun;
 use App\Application\Sepa\RecordSepaDebitItemEvent;
 use App\Application\Sepa\RefreshSepaDebitRunStatus;
 use App\Application\Sepa\SubmitSepaDebitRun;
 use App\Domain\Club\Models\Club;
 use App\Domain\Contribution\Enums\ContributionChargeStatus;
+use App\Domain\Contribution\Enums\PaymentStatus;
 use App\Domain\Contribution\Models\ContributionCharge;
 use App\Domain\Contribution\Models\ContributionType;
 use App\Domain\Identity\Enums\Permission;
@@ -639,14 +641,13 @@ it('prevents unauthorized users from recording bank rejection', function (string
     'view permission' => Permission::SepaDebitRunsView->value,
 ]);
 
-it('records a returned debit from settled without changing the contribution charge', function (?string $reasonCode, ?string $bankReference): void {
+it('records a returned debit and reverses its payment while reopening the charge', function (?string $reasonCode, ?string $bankReference): void {
     $club = sepaDebitRunTableClub();
     auth()->user()->givePermissionTo(SpatiePermission::findOrCreate(Permission::SepaDebitItemsFeedbackManage->value, 'web'));
     $run = createTableSepaDebitRun($club, ['status' => SepaDebitRunStatus::Accepted]);
     $item = createViewSepaDebitItem($run, 'Max', 'Mustermann', '25.00', 'SV-001');
     $item->update(['status' => SepaDebitItemStatus::Settled]);
-    $item->charge->update(['status' => ContributionChargeStatus::Paid]);
-    $chargeBefore = $item->charge->fresh()->getAttributes();
+    $payment = app(CreatePaymentFromSettledSepaItem::class)->handle($item, now()->toImmutable(), auth()->user());
 
     Livewire::test(ItemsRelationManager::class, ['ownerRecord' => $run, 'pageClass' => ViewSepaDebitRun::class])
         ->assertActionVisible(TestAction::make('return')->table($item))
@@ -660,7 +661,9 @@ it('records a returned debit from settled without changing the contribution char
         ->assertActionHidden(TestAction::make('return')->table($item));
 
     expect($item->fresh()->status)->toBe(SepaDebitItemStatus::Returned);
-    expect($item->charge->fresh()->getAttributes())->toBe($chargeBefore);
+    expect($payment->fresh()->status)->toBe(PaymentStatus::Reversed);
+    expect($item->charge->fresh()->status)->toBe(ContributionChargeStatus::Open);
+    expect($item->charge->fresh()->paid_at)->toBeNull();
     $this->assertDatabaseCount('sepa_debit_item_events', 1);
     $this->assertDatabaseHas('sepa_debit_item_events', [
         'club_id' => $club->getKey(),

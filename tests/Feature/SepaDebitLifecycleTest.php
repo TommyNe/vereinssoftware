@@ -1,6 +1,7 @@
 <?php
 
 use App\Application\Club\CurrentClub;
+use App\Application\Contribution\CreatePaymentFromSettledSepaItem;
 use App\Application\Sepa\ExportSepaDebitRun;
 use App\Application\Sepa\PrepareSepaDebitRun;
 use App\Application\Sepa\RecordSepaDebitItemEvent;
@@ -25,6 +26,7 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
 
@@ -181,7 +183,7 @@ it('rejects submission without complete export metadata', function (string $miss
     expect($run->fresh()->status)->toBe(SepaDebitRunStatus::Exported);
 })->with(['xml_storage_path', 'xml_sha256']);
 
-it('persists allowed item transitions without changing the contribution charge or copying bank data', function (
+it('persists allowed item transitions and updates charge payment status without copying bank data', function (
     SepaDebitItemStatus $current,
     SepaDebitEventType $eventType,
     SepaDebitItemStatus $target,
@@ -192,13 +194,18 @@ it('persists allowed item transitions without changing the contribution charge o
     $user = User::factory()->create();
     $chargeBefore = $item->charge->getAttributes();
 
+    if ($eventType === SepaDebitEventType::Returned) {
+        app(CreatePaymentFromSettledSepaItem::class)->handle($item, CarbonImmutable::parse('2026-10-15'), $user);
+    }
+
     $event = app(RecordSepaDebitItemEvent::class)->handle(
         $item, $eventType, CarbonImmutable::parse('2026-10-20 10:30:00'), ' am04 ', 'Keine Deckung', 'BANK-123', 'manual', $user,
     );
 
     expect($item->fresh()->status)->toBe($target);
-    expect($item->charge->fresh()->getAttributes())->toBe($chargeBefore);
-    expect($item->charge->fresh()->status)->toBe(ContributionChargeStatus::Open);
+    expect(Arr::except($item->charge->fresh()->getAttributes(), ['status', 'paid_at', 'updated_at']))
+        ->toBe(Arr::except($chargeBefore, ['status', 'paid_at', 'updated_at']));
+    expect($item->charge->fresh()->status)->toBe($eventType === SepaDebitEventType::Settled ? ContributionChargeStatus::Paid : ContributionChargeStatus::Open);
     expect($event->fresh()->getAttributes())->toHaveKeys([
         'club_id', 'sepa_debit_item_id', 'type', 'occurred_at', 'reason_code', 'reason_text', 'bank_reference', 'source', 'recorded_by',
     ]);
@@ -257,10 +264,11 @@ it('keeps earlier item events unchanged when later events are recorded', functio
     app(CurrentClub::class)->set($club);
     $item = createLifecycleItem(createLifecycleRun($club), SepaDebitItemStatus::Submitted);
     $service = app(RecordSepaDebitItemEvent::class);
-    $accepted = $service->handle($item, SepaDebitEventType::Accepted, CarbonImmutable::parse('2026-10-15'), null, null, null, 'manual', null);
+    $user = User::factory()->create();
+    $accepted = $service->handle($item, SepaDebitEventType::Accepted, CarbonImmutable::parse('2026-10-15'), null, null, null, 'manual', $user);
     $acceptedBefore = $accepted->fresh()->getAttributes();
-    $service->handle($item->fresh(), SepaDebitEventType::Settled, CarbonImmutable::parse('2026-10-16'), null, null, null, 'manual', null);
-    $service->handle($item->fresh(), SepaDebitEventType::Returned, CarbonImmutable::parse('2026-10-20'), 'AM04', 'Keine Deckung', null, 'manual', null);
+    $service->handle($item->fresh(), SepaDebitEventType::Settled, CarbonImmutable::parse('2026-10-16'), null, null, null, 'manual', $user);
+    $service->handle($item->fresh(), SepaDebitEventType::Returned, CarbonImmutable::parse('2026-10-20'), 'AM04', 'Keine Deckung', null, 'manual', $user);
 
     expect($accepted->fresh()->getAttributes())->toBe($acceptedBefore);
     expect($item->events()->orderBy('occurred_at')->pluck('type')->all())->toBe([

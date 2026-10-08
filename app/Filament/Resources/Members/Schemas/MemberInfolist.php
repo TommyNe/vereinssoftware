@@ -2,10 +2,15 @@
 
 namespace App\Filament\Resources\Members\Schemas;
 
-use App\Domain\Contribution\Enums\ContributionChargeStatus;
+use App\Application\Contribution\PaymentBalanceResolver;
+use App\Domain\Contribution\Enums\ChargePaymentState;
+use App\Domain\Contribution\Enums\PaymentMethod;
+use App\Domain\Contribution\Enums\PaymentStatus;
+use App\Domain\Contribution\Models\ContributionCharge;
 use App\Domain\Membership\Enums\MemberDocumentType;
 use App\Domain\Membership\Enums\MembershipStatus;
 use App\Domain\Membership\Models\MemberDocument;
+use App\Filament\Resources\Members\Actions\AllocatePaymentAction;
 use App\Filament\Resources\Members\Actions\AssignFunctionAction;
 use App\Filament\Resources\Members\Actions\ChangeAddressAction;
 use App\Filament\Resources\Members\Actions\ChangeContactDataAction;
@@ -22,6 +27,7 @@ use App\Filament\Resources\Members\Actions\UploadDocumentAction;
 use Filament\Actions\ActionGroup;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Gate;
@@ -281,27 +287,44 @@ class MemberInfolist
                                     'amount'
                                 )
                                     ->label(
-                                        'Betrag'
+                                        'Forderungsbetrag'
                                     )
                                     ->money('EUR'),
 
-                                TextEntry::make('status')
+                                TextEntry::make('allocated_amount')
+                                    ->label('Bezahlt')
+                                    ->state(
+                                        static fn (ContributionCharge $record): string => app(PaymentBalanceResolver::class)->allocatedAmount($record)
+                                    )
+                                    ->money('EUR'),
+
+                                TextEntry::make('outstanding_amount')
+                                    ->label('Offen')
+                                    ->state(
+                                        static fn (ContributionCharge $record): string => app(PaymentBalanceResolver::class)->outstandingAmount($record)
+                                    )
+                                    ->money('EUR'),
+
+                                TextEntry::make('payment_state')
                                     ->label('Status')
                                     ->badge()
+                                    ->state(
+                                        static fn (ContributionCharge $record): ChargePaymentState => app(PaymentBalanceResolver::class)->state($record)
+                                    )
                                     ->formatStateUsing(
                                         static fn (
-                                            ContributionChargeStatus $state
+                                            ChargePaymentState $state
                                         ): string => $state->label()
                                     )
                                     ->color(
                                         static fn (
-                                            ContributionChargeStatus $state
+                                            ChargePaymentState $state
                                         ): string => match ($state) {
-                                            ContributionChargeStatus::Open => 'warning',
+                                            ChargePaymentState::Open => 'warning',
 
-                                            ContributionChargeStatus::Paid => 'success',
+                                            ChargePaymentState::PartiallyPaid => 'warning',
 
-                                            ContributionChargeStatus::Cancelled => 'gray',
+                                            ChargePaymentState::Paid => 'success',
                                         }
                                     ),
 
@@ -354,6 +377,46 @@ class MemberInfolist
                                     ->columnSpanFull(),
                             ])
                             ->columns(4),
+                    ]),
+                Section::make('Zahlungen')
+                    ->columnSpanFull()
+                    ->schema([
+                        RepeatableEntry::make('payments')
+                            ->label('')
+                            ->placeholder('Keine Zahlungen vorhanden')
+                            ->schema([
+                                TextEntry::make('booking_date')
+                                    ->label('Datum')
+                                    ->date('d.m.Y'),
+
+                                TextEntry::make('amount')
+                                    ->label('Betrag')
+                                    ->money('EUR'),
+
+                                TextEntry::make('method')
+                                    ->label('Zahlungsart')
+                                    ->formatStateUsing(
+                                        static fn (PaymentMethod $state): string => $state->label()
+                                    ),
+
+                                TextEntry::make('status')
+                                    ->label('Status')
+                                    ->badge()
+                                    ->formatStateUsing(
+                                        static fn (PaymentStatus $state): string => $state->label()
+                                    ),
+
+                                TextEntry::make('reference')
+                                    ->label('Referenz')
+                                    ->placeholder('—'),
+
+                                Actions::make([
+                                    AllocatePaymentAction::make(),
+                                ])
+                                    ->key('allocation')
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(5),
                     ]),
                 Section::make('SEPA-Mandat')
                     ->key('sepaMandate')

@@ -44,4 +44,7 @@ enum Permission: string
     case SepaDebitRunsCancel = 'sepa-debit-runs.cancel';
     case SepaDebitRunsSubmit = 'sepa-debit-runs.submit';
     case SepaDebitItemsFeedbackManage = 'sepa-debit-items.feedback.manage';
+    case PaymentsView = 'payments.view';
+    case PaymentsManage = 'payments.manage';
+    case PaymentsReverse = 'payments.reverse';
 }

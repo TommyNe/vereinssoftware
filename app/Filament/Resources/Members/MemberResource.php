@@ -59,6 +59,7 @@ class MemberResource extends Resource
                 'activeFunctionAssignments.clubFunction',
                 'contributionOverrides.contributionType',
                 'contributionCharges.contributionType',
+                'payments.allocations',
             ]);
     }
 

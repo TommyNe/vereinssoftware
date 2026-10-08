@@ -4,6 +4,8 @@ namespace App\Application\Sepa;
 
 use App\Application\Audit\AuditLogger;
 use App\Application\Club\CurrentClub;
+use App\Application\Contribution\CreatePaymentFromSettledSepaItem;
+use App\Application\Contribution\ReversePaymentForSepaReturn;
 use App\Domain\Audit\Enums\AuditAction;
 use App\Domain\Sepa\Enums\SepaDebitEventType;
 use App\Domain\Sepa\Enums\SepaDebitItemStatus;
@@ -19,6 +21,8 @@ final readonly class RecordSepaDebitItemEvent
     public function __construct(
         private CurrentClub $currentClub,
         private AuditLogger $audit,
+        private CreatePaymentFromSettledSepaItem $createPayment,
+        private ReversePaymentForSepaReturn $reversePayment,
     ) {}
 
     /**
@@ -73,6 +77,8 @@ final readonly class RecordSepaDebitItemEvent
                         ->lockForUpdate()
                         ->firstOrFail();
 
+                $this->assertTransitionAllowed($lockedItem->status, $newStatus);
+
                 $event =
                     SepaDebitItemEvent::query()
                         ->create([
@@ -121,6 +127,16 @@ final readonly class RecordSepaDebitItemEvent
                 $lockedItem->update([
                     'status' => $newStatus,
                 ]);
+
+                if ($type === SepaDebitEventType::Settled) {
+                    $this->createPayment->handle($lockedItem, $occurredAt, $recordedBy);
+                } elseif ($type === SepaDebitEventType::Returned) {
+                    $this->reversePayment->handle(
+                        $lockedItem,
+                        $event->reason_text ?? $event->reason_code ?? 'SEPA-Rücklastschrift',
+                        $recordedBy ?? throw new DomainException('Für Rücklastschriften muss ein Benutzer vorhanden sein.'),
+                    );
+                }
 
                 $auditAction = match ($type) {
                     SepaDebitEventType::Submitted => null,

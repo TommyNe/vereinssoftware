@@ -1,6 +1,7 @@
 <?php
 
 use App\Application\Club\CurrentClub;
+use App\Application\Contribution\CreatePaymentFromSettledSepaItem;
 use App\Application\Sepa\ExportSepaDebitRun;
 use App\Application\Sepa\RecordSepaDebitItemEvent;
 use App\Application\Sepa\RefreshSepaDebitRunStatus;
@@ -142,6 +143,10 @@ it('audits item feedback with only identifiers and the normalized reason code', 
     $item = $fixture['run']->items()->sole();
     $item->update(['status' => $current, 'end_to_end_id' => 'E2E-123']);
     $service = app(RecordSepaDebitItemEvent::class);
+
+    if ($type === SepaDebitEventType::Returned) {
+        app(CreatePaymentFromSettledSepaItem::class)->handle($item, now()->toImmutable(), $fixture['user']);
+    }
 
     $service->handle($item, $type, now()->toImmutable(), ' am04 ', $item->iban, $item->account_holder, 'manual', $fixture['user']);
 

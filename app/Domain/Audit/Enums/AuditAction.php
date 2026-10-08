@@ -4,6 +4,12 @@ namespace App\Domain\Audit\Enums;
 
 enum AuditAction: string
 {
+    case PaymentCreated = 'payment.created';
+
+    case PaymentAllocated = 'payment.allocated';
+
+    case PaymentReversed = 'payment.reversed';
+
     case ContributionRunFailed = 'contribution.run.failed';
 
     case DocumentUploaded = 'member.document.uploaded';
