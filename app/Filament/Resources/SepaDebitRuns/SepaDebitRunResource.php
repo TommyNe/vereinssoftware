@@ -29,7 +29,7 @@ class SepaDebitRunResource extends Resource
 
     protected static ?string $pluralModelLabel = 'SEPA-Lastschriftläufe';
 
-    protected static ?string $navigationLabel = 'SEPA-Lastschriftläufe';
+    protected static ?string $navigationLabel = 'SEPA-Lastschriften';
 
     protected static string|UnitEnum|null $navigationGroup = 'Finanzen';
 

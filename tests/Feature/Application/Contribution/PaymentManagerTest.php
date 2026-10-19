@@ -449,6 +449,24 @@ it('rejects an allocation exceeding the remaining balance', function (string $pa
     'charge balance' => ['100.00', '25.00', 'Die Zuordnung ist größer als der offene Forderungsbetrag.'],
 ]);
 
+it('rejects a repeated hundred euro allocation after a hundred euro payment is exhausted', function (bool $sameCharge): void {
+    $fixture = paymentAllocationFixture();
+    $secondCharge = $fixture['charge'];
+    if (! $sameCharge) {
+        $secondCharge = $fixture['charge']->replicate();
+        $secondCharge->save();
+    }
+    $manager = app(PaymentManager::class);
+    $manager->allocate($fixture['payment'], $fixture['charge'], '100.00');
+
+    expect(fn () => $manager->allocate($fixture['payment'], $secondCharge, '100.00'))
+        ->toThrow(DomainException::class, 'Die Zuordnung ist größer als der noch verfügbare Zahlungsbetrag.');
+
+    $this->assertDatabaseCount('payment_allocations', 1);
+    expect(app(PaymentBalanceResolver::class)->unallocatedAmount($fixture['payment']))->toBe('0.00');
+    expect(bccomp((string) $fixture['payment']->allocations()->sum('amount'), '100.00', 2))->toBe(0);
+})->with(['double submit for the same charge' => true, 'allocation to a different charge' => false]);
+
 it('checks the persisted amount instead of a stale model', function (string $model, string $message): void {
     $fixture = paymentAllocationFixture();
     $fixture[$model]->newQuery()->whereKey($fixture[$model]->getKey())->update(['amount' => '15.00']);

@@ -13,6 +13,13 @@ readonly class ContributionChargePolicy
         private CurrentClub $currentClub,
     ) {}
 
+    public function viewAny(User $user): bool
+    {
+        return $this->currentClub->hasClub() && $user->can(
+            Permission::ContributionChargesView->value
+        );
+    }
+
     public function view(
         User $user,
         ContributionCharge $charge,

@@ -4,8 +4,10 @@ use App\Application\Club\CurrentClub;
 use App\Domain\Club\Models\Club;
 use App\Domain\Contribution\Models\Payment;
 use App\Domain\Identity\Enums\Permission;
+use App\Filament\Resources\Payments\PaymentResource;
 use App\Models\User;
 use App\Policies\PaymentPolicy;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use Spatie\Permission\Models\Permission as SpatiePermission;
@@ -28,10 +30,18 @@ it('requires club context and payment permissions and restricts payments to that
 
     $policy = app(PaymentPolicy::class);
 
+    expect($policy->viewAny($user))->toBe($hasClub && $hasPermission);
+    expect(Gate::forUser($user)->allows('viewAny', Payment::class))->toBe($hasClub && $hasPermission);
+    $this->actingAs($user);
+    Filament::setCurrentPanel(Filament::getPanel('admin'));
+    expect(PaymentResource::canViewAny())->toBe($hasClub && $hasPermission);
     expect($policy->view($user, $payment))->toBe($hasClub && $hasPermission && $sameClub);
     expect($policy->create($user))->toBe($hasClub && $hasPermission);
     expect($policy->reverse($user, $payment))->toBe($hasClub && $hasPermission && $sameClub);
     expect($policy->delete($user, $payment))->toBeFalse();
+    expect($policy->deleteAny($user))->toBeFalse();
+    expect(Gate::forUser($user)->allows('deleteAny', Payment::class))->toBeFalse();
+    expect(PaymentResource::canDeleteAny())->toBeFalse();
     expect(Gate::forUser($user)->allows('view', $payment))->toBe($hasClub && $hasPermission && $sameClub);
 })->with([
     'authorized current club' => [true, true, true],
@@ -50,6 +60,7 @@ it('separates viewing managing and reversing payment permissions', function (Per
 
     $policy = app(PaymentPolicy::class);
 
+    expect($policy->viewAny($user))->toBe($canView);
     expect($policy->view($user, $payment))->toBe($canView);
     expect($policy->create($user))->toBe($canCreate);
     expect($policy->reverse($user, $payment))->toBe($canReverse);

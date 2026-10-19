@@ -59,6 +59,9 @@ final class Payment extends Model
         );
     }
 
+    /**
+     * @return BelongsTo<Member, $this>
+     */
     public function member(): BelongsTo
     {
         return $this->belongsTo(

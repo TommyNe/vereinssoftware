@@ -6,6 +6,7 @@ use App\Domain\Club\Models\Club;
 use App\Domain\Contribution\Enums\ContributionChargeStatus;
 use App\Domain\Membership\Models\Member;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -112,6 +113,29 @@ final class ContributionCharge extends Model
     {
         return $this->hasMany(
             PaymentAllocation::class
+        );
+    }
+
+    public function scopeNotCancelled(
+        Builder $query,
+    ): Builder {
+        return $query->where(
+            'status',
+            '!=',
+            ContributionChargeStatus::Cancelled
+                ->value
+        );
+    }
+
+    public function scopeOpenForPayment(
+        Builder $query,
+    ): Builder {
+        return $query->whereIn(
+            'status',
+            [
+                ContributionChargeStatus::Open
+                    ->value,
+            ]
         );
     }
 }

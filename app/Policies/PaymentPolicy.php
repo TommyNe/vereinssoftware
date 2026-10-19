@@ -13,6 +13,14 @@ readonly class PaymentPolicy
         private CurrentClub $currentClub,
     ) {}
 
+    public function viewAny(
+        User $user,
+    ): bool {
+        return $this->currentClub->hasClub() && $user->can(
+            Permission::PaymentsView->value
+        );
+    }
+
     public function view(
         User $user,
         Payment $payment,
@@ -51,6 +59,11 @@ readonly class PaymentPolicy
         User $user,
         Payment $payment,
     ): bool {
+        return false;
+    }
+
+    public function deleteAny(User $user): bool
+    {
         return false;
     }
 }

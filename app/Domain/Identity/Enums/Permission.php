@@ -47,4 +47,8 @@ enum Permission: string
     case PaymentsView = 'payments.view';
     case PaymentsManage = 'payments.manage';
     case PaymentsReverse = 'payments.reverse';
+    case FinanceOverviewView = 'finance-overview.view';
+    case FinanceChargesView = 'finance-charges.view';
+    case FinancePaymentsView = 'finance-payments.view';
+
 }

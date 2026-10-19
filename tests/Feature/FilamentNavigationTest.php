@@ -42,25 +42,34 @@ function visibleNavigationLabels(): array
         ->all();
 }
 
-it('organizes the administrator navigation by daily work, finances, club structure and settings', function (): void {
+it('organizes the administrator navigation by daily work, finances, club structure and settings', function (bool $clubRole): void {
     $this->seed([PermissionSeeder::class, RoleSeeder::class]);
     $user = User::factory()->create();
     $club = navigationClub($user);
+    if ($clubRole) {
+        Role::query()->create([
+            'name' => RoleName::Administrator->value,
+            'guard_name' => 'web',
+            'club_id' => $club->getKey(),
+        ]);
+        $this->seed(RoleSeeder::class);
+    }
     $user->assignRole(RoleName::Administrator->value);
 
     $this->get(route('filament.admin.pages.dashboard', ['tenant' => $club]))
         ->assertOk()
         ->assertSee('Übersicht')
-        ->assertSee('SEPA-Lastschriftläufe');
+        ->assertSee('Zahlungen')
+        ->assertSee('SEPA-Lastschriften');
 
     expect(visibleNavigationLabels())->toBe([
         'Start' => ['Übersicht', 'Mitglieder'],
-        'Finanzen' => ['Beitragsläufe', 'SEPA-Lastschriftläufe', 'Beitragsarten', 'Beitragssätze'],
+        'Finanzen' => ['Übersicht', 'Forderungen', 'Zahlungen', 'Beitragsläufe', 'SEPA-Lastschriften', 'Beitragsarten', 'Beitragssätze'],
         'Vereinsstruktur' => ['Mitgliedsarten', 'Abteilungen', 'Vereinsfunktionen'],
         'Einstellungen' => ['Benutzer & Rollen', 'Einladungen', 'SEPA-Einstellungen'],
         'Hilfe' => ['Benutzerhandbuch'],
     ]);
-});
+})->with(['global administrator' => false, 'club administrator' => true]);
 
 it('keeps unauthorized areas out of the navigation and personal pages in the user menu', function (): void {
     $this->seed(PermissionSeeder::class);

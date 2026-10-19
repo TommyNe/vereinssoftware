@@ -5,10 +5,11 @@ use App\Http\Controllers\MemberDocumentDownloadController;
 use App\Http\Controllers\SepaDebitRunDownloadController;
 use App\Http\Middleware\SetCurrentClub;
 use Filament\Auth\Http\Controllers\EmailVerificationController;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
+Route::get('/', function (): RedirectResponse {
+    return to_route('filament.admin.auth.login');
 });
 
 Route::get(
