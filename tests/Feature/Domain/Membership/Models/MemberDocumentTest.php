@@ -1,7 +1,7 @@
 <?php
 
-test('example', function () {
+test('the home page redirects to the software login', function (): void {
     $response = $this->get('/');
 
-    $response->assertStatus(200);
+    $response->assertRedirectToRoute('filament.admin.auth.login');
 });

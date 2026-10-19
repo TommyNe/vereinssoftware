@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\DB;
 
 uses(DatabaseTruncation::class);
 
+afterEach(function (): void {
+    $this->truncateTablesForAllConnections();
+});
+
 it('serializes concurrent allocations so a hundred euro payment cannot fund two hundred euros', function (): void {
     if (DB::getDriverName() !== 'pgsql' || ! function_exists('pcntl_fork') || ! function_exists('posix_kill')) {
         $this->markTestSkipped('Requires a dedicated PostgreSQL test database and the pcntl and posix extensions.');

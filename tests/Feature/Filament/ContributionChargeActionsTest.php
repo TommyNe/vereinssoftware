@@ -136,8 +136,8 @@ it('cancels an open contribution charge from the member page', function (): void
     expect($charge->cancelled_at)->toBeInstanceOf(CarbonImmutable::class);
 });
 
-test('example', function () {
+test('the home page redirects to the software login', function (): void {
     $response = $this->get('/');
 
-    $response->assertStatus(200);
+    $response->assertRedirectToRoute('filament.admin.auth.login');
 });

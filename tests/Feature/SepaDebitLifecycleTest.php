@@ -28,6 +28,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
@@ -418,7 +419,8 @@ it('blocks duplicate bank identifiers in the database', function (string $attrib
     $secondRecord = $attribute === 'end_to_end_id' ? createLifecycleItem($secondRun) : $secondRun;
     $firstRecord->update([$attribute => 'UNIQUE-BANK-ID']);
 
-    expect(fn () => $secondRecord->update([$attribute => 'UNIQUE-BANK-ID']))->toThrow(QueryException::class);
+    expect(fn () => DB::transaction(fn (): bool => $secondRecord->update([$attribute => 'UNIQUE-BANK-ID'])))
+        ->toThrow(QueryException::class);
     expect($secondRecord->fresh()->getAttribute($attribute))->toBeNull();
 })->with(['message_id', 'payment_information_id', 'end_to_end_id']);
 
@@ -429,7 +431,7 @@ it('blocks a second active debit for the same charge in the database', function 
     $duplicate = $item->replicate();
     $duplicate->fill(['sepa_debit_run_id' => $otherRun->getKey(), 'status' => SepaDebitItemStatus::Prepared]);
 
-    expect(fn () => $duplicate->save())->toThrow(QueryException::class);
+    expect(fn () => DB::transaction(fn (): bool => $duplicate->save()))->toThrow(QueryException::class);
     $this->assertDatabaseCount('sepa_debit_items', 1);
     expect($item->fresh()->status)->toBe($status);
 })->with([
