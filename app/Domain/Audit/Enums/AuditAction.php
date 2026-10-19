@@ -4,6 +4,12 @@ namespace App\Domain\Audit\Enums;
 
 enum AuditAction: string
 {
+    case PaymentCreated = 'payment.created';
+
+    case PaymentAllocated = 'payment.allocated';
+
+    case PaymentReversed = 'payment.reversed';
+
     case ContributionRunFailed = 'contribution.run.failed';
 
     case DocumentUploaded = 'member.document.uploaded';
@@ -139,4 +145,20 @@ enum AuditAction: string
     case SepaDebitRunExported = 'sepa.debit-run.exported';
 
     case SepaDebitRunDownloaded = 'sepa.debit-run.downloaded';
+
+    case SepaDebitRunSubmitted = 'sepa.debit-run.submitted';
+
+    case SepaDebitRunAccepted = 'sepa.debit-run.accepted';
+
+    case SepaDebitRunRejected = 'sepa.debit-run.rejected';
+
+    case SepaDebitItemAccepted = 'sepa.debit-item.accepted';
+
+    case SepaDebitItemRejected = 'sepa.debit-item.rejected';
+
+    case SepaDebitItemSettled = 'sepa.debit-item.settled';
+
+    case SepaDebitItemReturned = 'sepa.debit-item.returned';
+
+    case SepaDebitItemRefunded = 'sepa.debit-item.refunded';
 }

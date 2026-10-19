@@ -23,7 +23,7 @@ it('uses the German contribution type navigation labels', function (): void {
     expect(ContributionTypeResource::getModelLabel())->toBe('Beitragsart')
         ->and(ContributionTypeResource::getPluralModelLabel())->toBe('Beitragsarten')
         ->and(ContributionTypeResource::getNavigationLabel())->toBe('Beitragsarten')
-        ->and(ContributionTypeResource::getNavigationGroup())->toBe('Stammdaten');
+        ->and(ContributionTypeResource::getNavigationGroup())->toBe('Finanzen');
 });
 
 function contributionAdministrator(): Club

@@ -25,9 +25,11 @@ class ContributionRateResource extends Resource
 
     protected static ?string $navigationLabel = 'Beitragssätze';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Stammdaten';
+    protected static string|UnitEnum|null $navigationGroup = 'Finanzen';
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCurrencyEuro;
+
+    protected static ?int $navigationSort = 40;
 
     protected static ?string $recordTitleAttribute = 'ContributionRate';
 

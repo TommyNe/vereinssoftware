@@ -27,7 +27,7 @@ final class DepartmentResource extends Resource
         'Abteilungen';
 
     protected static string|UnitEnum|null $navigationGroup =
-        'Stammdaten';
+        'Vereinsstruktur';
 
     protected static string|BackedEnum|null $navigationIcon =
         'heroicon-o-building-office';

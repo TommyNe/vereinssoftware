@@ -66,4 +66,17 @@ final readonly class SepaDebitRunPolicy
                 Permission::SepaDebitRunsExport->value
             );
     }
+
+    public function submit(
+        User $user,
+        SepaDebitRun $run,
+    ): bool {
+        return
+            (string) $run->club_id
+            === $this->currentClub->id()
+            && $user->can(
+                Permission::SepaDebitRunsSubmit
+                    ->value
+            );
+    }
 }

@@ -19,7 +19,7 @@ it('uses the German contribution rate navigation labels', function (): void {
     expect(ContributionRateResource::getModelLabel())->toBe('Beitragssatz')
         ->and(ContributionRateResource::getPluralModelLabel())->toBe('Beitragssätze')
         ->and(ContributionRateResource::getNavigationLabel())->toBe('Beitragssätze')
-        ->and(ContributionRateResource::getNavigationGroup())->toBe('Stammdaten');
+        ->and(ContributionRateResource::getNavigationGroup())->toBe('Finanzen');
 });
 
 it('authorizes the contribution rates page through its policy', function (bool $canManage): void {
@@ -77,6 +77,6 @@ it('shows contribution rate values in the table', function (): void {
         ->assertCanRenderTableColumn('amount')
         ->assertCanRenderTableColumn('valid_from')
         ->assertSee('Jahresbeitrag')
-        ->assertSee('€30.00')
+        ->assertSee("30,00\u{00A0}€")
         ->assertSee('01.01.2026');
 });

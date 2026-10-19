@@ -1,6 +1,6 @@
 # Vereinssoftware – Benutzerhandbuch
 
-**Stand: 6. Oktober 2026**
+**Stand: 19. Oktober 2026**
 
 > **Achtung: Alpha-Version**
 >
@@ -13,7 +13,8 @@
 
 Dieses Handbuch richtet sich an Personen, die Mitglieder, Beiträge und
 Benutzerzugänge eines Vereins verwalten. Es beschreibt die vorhandene
-Browseroberfläche einschließlich des SEPA-XML-Exports.
+Browseroberfläche einschließlich Finanzübersicht, Forderungsfiltern,
+Zahlungszuordnung und SEPA-XML-Export.
 
 Welche Menüpunkte und Aktionen du siehst, hängt von deinen Berechtigungen im
 ausgewählten Verein ab. Einige automatisch erzeugte Bezeichnungen können
@@ -57,6 +58,10 @@ Benutzerzugang zum ausgewählten Verein, aber keine besonderen Verwaltungsrechte
 | Beitragssatz | Der gültige Betrag einer Beitragsart, gegebenenfalls für eine bestimmte Mitgliedsart. |
 | Beitragsregel | Eine individuelle Betragsregel oder Beitragsbefreiung für ein Mitglied. |
 | Forderung | Ein konkreter offener, bezahlter oder stornierter Beitrag für ein Mitglied und einen Zeitraum. |
+| Zahlung | Ein erfasster Zahlungseingang mit Betrag, Buchungsdatum und Zahlungsart. |
+| Zuordnung | Der Teil einer Zahlung, der eine konkrete Forderung desselben Mitglieds ausgleicht. |
+| Nicht zugeordneter Betrag | Der Teil einer aktiven Zahlung, der noch keiner Forderung zugeordnet ist. |
+| Teilweise bezahlt | Eine Forderung ist durch Zahlungszuordnungen nur zum Teil ausgeglichen. |
 | Beitragslauf | Ein Vorgang, der für mehrere Mitglieder Forderungen erzeugt. |
 | SEPA-Mandat | Die erfassten Angaben zur Lastschriftermächtigung eines Mitglieds. |
 | Lastschriftlauf | Die Zusammenstellung fälliger offener Forderungen für einen SEPA-Export. |
@@ -72,8 +77,9 @@ Zahlungseingänge abgleichen.**
 
 ### 2.1 Erste Anmeldung
 
-1. Öffne die Verwaltungsoberfläche deiner Installation. Die Adresse erhältst
-   du von der Person, die die Software betreibt.
+1. Öffne die Startseite deiner Installation. Sie leitet direkt zur Anmeldung
+   der Software weiter. Die Adresse erhältst du von der Person, die die
+   Software betreibt.
 2. Melde dich mit deiner E-Mail-Adresse und deinem Passwort an.
 3. Bestätige deine E-Mail-Adresse, wenn die Anwendung dich dazu auffordert.
 4. Wenn du Zwei-Faktor-Authentifizierung eingerichtet hast, gib zusätzlich
@@ -116,19 +122,27 @@ an die Betreuung der Installation.
 
 | Bereich oder Menüpunkt | Wofür du ihn verwendest |
 | --- | --- |
+| Übersicht | Die allgemeine Startseite nach der Anmeldung. |
 | Mitglieder | Mitglieder suchen, aufnehmen und ihre Detailseiten öffnen. |
-| Stammdaten → Mitgliedsarten | Kategorien für Mitgliedschaften pflegen. |
-| Stammdaten → Abteilungen | Vereinsabteilungen pflegen. |
-| Stammdaten → Vereinsfunktionen | Funktionen für die Zuordnung zu Mitgliedern pflegen. |
-| Stammdaten → Beitragsarten | Beitragsarten und ihren Rhythmus pflegen. |
-| Stammdaten → Beitragssätze | Beträge und Gültigkeitszeiträume hinterlegen. |
-| Beitragsläufe | Forderungen für mehrere Mitglieder erzeugen und Ergebnisse prüfen. |
-| SEPA-Läufe, gegebenenfalls „Sepa Debit Runs“ | Die Liste mit der Aktion „Lastschriftlauf vorbereiten“. |
-| Einstellungen → SEPA | Das Gläubigerkonto und die SEPA-Einstellungen pflegen. |
-| Administration → Benutzer | Vereinszugänge und Rollen verwalten. |
-| Administration → Einladungen | Einladungen prüfen, erneut senden oder widerrufen. |
-| Konto → Sicherheit | Eigene aktive Sitzungen prüfen und beenden. |
+| Finanzen → Übersicht | Offene, überfällige und teilweise bezahlte Forderungen sowie nicht zugeordnete Zahlungsbeträge prüfen. |
+| Finanzen → Forderungen | Forderungen vereinsweit suchen, filtern und ihre Details ansehen. |
+| Finanzen → Zahlungen | Einstieg in die noch unvollständige Zahlungsverwaltung; siehe Abschnitt 7.11. |
+| Finanzen → Beitragsläufe | Forderungen für mehrere Mitglieder erzeugen und Ergebnisse prüfen. |
+| Finanzen → SEPA-Lastschriften | Lastschriftläufe vorbereiten, exportieren und Bankrückmeldungen erfassen. |
+| Finanzen → Beitragsarten | Beitragsarten und ihren Rhythmus pflegen. |
+| Finanzen → Beitragssätze | Beträge und Gültigkeitszeiträume hinterlegen. |
+| Vereinsstruktur → Mitgliedsarten | Kategorien für Mitgliedschaften pflegen. |
+| Vereinsstruktur → Abteilungen | Vereinsabteilungen pflegen. |
+| Vereinsstruktur → Vereinsfunktionen | Funktionen für die Zuordnung zu Mitgliedern pflegen. |
+| Einstellungen → SEPA-Einstellungen | Das Gläubigerkonto und die SEPA-Einstellungen pflegen. |
+| Einstellungen → Benutzer & Rollen | Vereinszugänge und Rollen verwalten. |
+| Einstellungen → Einladungen | Einladungen prüfen, erneut senden oder widerrufen. |
+| Benutzermenü → Sicherheit | Eigene aktive Sitzungen prüfen und beenden. |
 | Benutzermenü → Profil | Name, E-Mail-Adresse, Passwort und Zwei-Faktor-Authentifizierung verwalten. |
+
+Die allgemeine **Übersicht** und **Finanzen → Übersicht** sind zwei
+unterschiedliche Seiten. Die Finanzübersicht trägt den Seitentitel
+**Finanzübersicht**. Alle Finanzdaten beziehen sich auf den ausgewählten Verein.
 
 ### 3.2 Suchen und Listen verwenden
 
@@ -302,7 +316,7 @@ dort hinterlegten strukturierten Angaben benötigt.
 
 ### 7.1 Beitragsart anlegen
 
-1. Öffne **Stammdaten → Beitragsarten**.
+1. Öffne **Finanzen → Beitragsarten**.
 2. Lege eine Beitragsart an.
 3. Trage Bezeichnung, optionalen Code und Beschreibung ein.
 4. Wähle den Rhythmus: einmalig, monatlich, vierteljährlich, halbjährlich oder
@@ -316,7 +330,7 @@ festgelegt.
 
 ### 7.2 Beitragssätze hinterlegen
 
-1. Öffne **Stammdaten → Beitragssätze**.
+1. Öffne **Finanzen → Beitragssätze**.
 2. Lege einen Satz für die gewünschte aktive Beitragsart an.
 3. Wähle eine Mitgliedsart oder lasse die Auswahl für einen allgemeinen Satz
    leer.
@@ -361,7 +375,7 @@ die abgerechnete Leistung; das Fälligkeitsdatum ist der Zahlungstermin.
 
 ### 7.5 Forderungen für mehrere Mitglieder erzeugen
 
-1. Öffne **Beitragsläufe**.
+1. Öffne **Finanzen → Beitragsläufe**.
 2. Wähle **Beitragslauf erstellen**.
 3. Fülle das Formular aus:
 
@@ -400,9 +414,12 @@ dieselbe Beitragsart und denselben Zeitraum und prüfe das Ergebnis.
 3. Wähle die offene Forderung und trage **Bezahlt am** ein.
 4. Bestätige **Als bezahlt markieren**.
 
-Diese Aktion erfasst einen Zahlungseingang in der Software. Sie löst keine
-Bankzahlung aus. Ein SEPA-Export allein ist kein Grund, eine Forderung als
-bezahlt zu markieren.
+Diese Aktion setzt den Forderungsstatus und das Bezahldatum. Sie erzeugt
+keine Zahlung und keine Zahlungszuordnung und löst keine Bankzahlung aus.
+Die Finanzübersicht berechnet Restbeträge aus Zahlungszuordnungen; eine nur
+manuell als bezahlt markierte Forderung kann dort deshalb weiter einen
+offenen Betrag haben. Gleiche vorhandene Zahlungen über die Zuordnung ab.
+Ein SEPA-Export allein bestätigt keinen Zahlungseingang.
 
 ### 7.7 Eine offene Forderung stornieren
 
@@ -415,11 +432,108 @@ angelegte Forderung. Eine gültige Forderung ohne SEPA-Mandat bleibt eine
 offene Forderung und muss auf einem anderen vorgesehenen Weg beglichen
 werden.
 
+### 7.8 Finanzübersicht lesen
+
+Öffne **Finanzen → Übersicht**. Die Kennzahlen zeigen Beträge und Anzahlen:
+
+| Kennzahl | Bedeutung |
+| --- | --- |
+| Offene Forderungen | Summe der noch ausstehenden Beträge nicht stornierter Forderungen. Vollständig durch aktive Zahlungen ausgeglichene Forderungen zählen nicht dazu. |
+| Überfällig | Noch ausstehende Beträge von Forderungen, deren Fälligkeit überschritten ist. |
+| Teilweise bezahlt | Noch ausstehende Restbeträge teilweise ausgeglichener Forderungen, nicht deren bereits bezahlte Anteile. |
+| Nicht zugeordnet | Verbleibende Beträge aktiver Zahlungen, die noch keiner Forderung zugeordnet sind. |
+
+„Überfällig“ und „Teilweise bezahlt“ sind Teilmengen der offenen Forderungen.
+Addiere die drei Forderungskennzahlen daher nicht zu einer Gesamtsumme.
+Zurückgebuchte Zahlungen gleichen keine Forderung mehr aus und zählen
+nicht als verfügbares Guthaben.
+
+Unter den Kennzahlen findest du die Tabelle offener Forderungen mit Betrag,
+bezahltem Anteil, Restbetrag und Zahlungsstatus. Über die Mitgliedsnummer
+kannst du die Mitgliedsdetailseite öffnen. Die Tabellenfilter **Nur
+überfällige** und **Diesen Monat fällig** grenzen diese Liste ein.
+
+Die Finanzübersicht ist noch mengenbegrenzt; beachte bei größeren Beständen
+die Hinweise in Abschnitt 15.
+
+### 7.9 Forderungen vereinsweit ansehen und filtern
+
+1. Öffne **Finanzen → Forderungen**.
+2. Suche nach Forderungsbeschreibung, Mitgliedsnummer oder Mitgliedsname.
+3. Öffne die Filter und wähle die benötigten Kriterien.
+4. Öffne die Ansicht-Aktion einer Forderung, um Mitglied, Beitragsart,
+   Betrag, Status, Fälligkeit und Beitragszeitraum zu prüfen.
+
+| Filter | Wirkung |
+| --- | --- |
+| Status | Zeigt **Offen**, **Bezahlt** oder **Storniert** entsprechend dem gespeicherten Forderungsstatus. |
+| Überfällig | Zeigt nur offene Forderungen mit einem Fälligkeitsdatum vor heute. |
+| Diesen Monat fällig | Zeigt Forderungen mit Fälligkeit im aktuellen Kalendermonat und Jahr. Für ausschließlich offene Forderungen zusätzlich den Status wählen. |
+| Mitglied | Grenzt auf ein Mitglied des aktuellen Vereins ein; die Auswahl ist nach Nummer, Vorname und Nachname durchsuchbar. |
+| Beitragsart | Grenzt auf eine Beitragsart des aktuellen Vereins ein. |
+| Zeitraum | Zeigt Forderungen, deren Beitragszeitraum den gewählten Zeitraum überschneidet; die Grenzen sind eingeschlossen. Ein fehlendes Enddatum gilt als offen. |
+
+Filter lassen sich kombinieren. Beim Zeitraum kannst du auch nur **Zeitraum
+von** oder nur **Zeitraum bis** angeben. Er bezieht sich auf den
+Beitragszeitraum, nicht auf das Fälligkeitsdatum.
+
+Diese Verwaltung bietet nur Liste und Detailansicht. Es gibt hier kein
+normales Erstellen, Bearbeiten oder Löschen von Forderungen. Nutze für
+fachliche Änderungen die vorgesehenen Beitragsaktionen beim Mitglied.
+
+### 7.10 Eine Zahlung einer Forderung zuordnen
+
+Bei vorhandenen Zahlungen findest du in der Mitgliedsdetailseite im
+Abschnitt **Zahlungen** die Aktion **Zahlung zuordnen**, sofern du die
+Berechtigung zur Zahlungsverwaltung besitzt und noch ein Restbetrag
+verfügbar ist.
+
+1. Gleiche den tatsächlichen Zahlungseingang ab und öffne das Mitglied.
+2. Wähle bei der passenden Zahlung **Zahlung zuordnen**.
+3. Wähle eine noch nicht vollständig ausgeglichene, nicht stornierte Forderung.
+4. Gib den **Zuordnungsbetrag** in Euro ein und bestätige die Aktion.
+5. Kontrolliere die Meldung **Zahlung zugeordnet** und den verbleibenden Betrag.
+
+Der Betrag muss mindestens 0,01 € betragen. Er darf weder den verfügbaren
+Rest der Zahlung noch den offenen Forderungsbetrag überschreiten. Zahlung
+und Forderung müssen zum selben Mitglied und zum aktuellen Verein gehören.
+Eine Teilzuordnung ist möglich; der übrige Zahlungsbetrag bleibt verfügbar.
+Ein doppeltes Absenden darf denselben Betrag nicht erneut verbrauchen.
+
+Beispiel: Eine Forderung über 100,00 € mit 50,00 € zugeordnetem Zahlungseingang
+bleibt mit 50,00 € offen. Bei einer Zahlung über 150,00 €, von der 120,00 €
+zugeordnet sind, bleiben 30,00 € nicht zugeordnet. Eine vollständig
+ausgeglichene Forderung wird automatisch als bezahlt geführt.
+
+### 7.11 Zahlungsverwaltung und Berechtigungen
+
+Der Menüpunkt **Finanzen → Zahlungen** ist vorhanden. Seine Tabellenspalten
+und sein Erfassungsformular sind im aktuellen Stand noch nicht ausgefüllt.
+Er ist deshalb noch kein vollständiger Arbeitsablauf zur manuellen
+Zahlungserfassung. Die Tabelle nicht zugeordneter Zahlungen mit der Aktion
+**Zuordnen** ist vorbereitet, aber noch nicht in die Finanzübersicht eingebunden.
+
+Die wichtigsten Rechte sind getrennt:
+
+| Berechtigung | Zugriff |
+| --- | --- |
+| `finance-overview.view` | Finanzübersicht sehen und öffnen. |
+| `contribution-charges.view` | Forderungsliste und Forderungsdetails sehen. |
+| `payments.view` | Zahlungsverwaltung sehen. |
+| `payments.manage` | Zahlungserfassung und Zahlungszuordnung ausführen, soweit die jeweilige Aktion eingebunden ist. |
+
+Leserechte für Zahlungen erlauben keine Zahlungszuordnung. Ohne das Recht
+für die Finanzübersicht wird deren Navigationseintrag ausgeblendet und ein
+direkter Aufruf abgewiesen. Die Anwendung prüft Schreibrechte auch beim
+Absenden; ein zuvor geöffnetes Formular erteilt nach einem Rechteentzug
+keine fortbestehende Erlaubnis. Bitte die Vereinsadministration um Prüfung,
+wenn im richtigen Verein ein benötigter Menüpunkt fehlt.
+
 ## 8. SEPA einrichten und Mandate erfassen
 
 ### 8.1 Gläubigerdaten des Vereins hinterlegen
 
-1. Öffne **Einstellungen → SEPA**.
+1. Öffne **Einstellungen → SEPA-Einstellungen**.
 2. Fülle die SEPA-Konfiguration aus:
 
 | Feld | Bedeutung |
@@ -489,7 +603,7 @@ bereits vorhandene Forderungen.
 
 ### 9.2 Lauf vorbereiten
 
-1. Öffne die Liste der SEPA-Lastschriftläufe.
+1. Öffne **Finanzen → SEPA-Lastschriften**.
 2. Wähle **Lastschriftlauf vorbereiten**.
 3. Gib eine aussagekräftige **Bezeichnung** ein, zum Beispiel
    „Jahresbeiträge 2026 – Oktober“.
@@ -582,9 +696,10 @@ Arbeitsablauf nicht automatisch an eine Bank und bestätigt keinen
 Zahlungseingang. Kläre den vorgesehenen Einreichungsweg und die spezifischen
 Anforderungen mit deiner zuständigen Stelle.
 
-Gleiche später die tatsächlichen Zahlungseingänge ab und markiere die
-zutreffenden Forderungen als bezahlt. Reiche denselben Export nicht allein
-deshalb erneut ein, weil eine Forderung in der Software noch offen ist.
+Gleiche später die tatsächlichen Zahlungseingänge ab. Beachte die
+Zahlungszuordnung in Abschnitt 7.10 und den Umgang mit Bankrückmeldungen in
+Abschnitt 9.9. Reiche denselben Export nicht allein deshalb erneut ein,
+weil eine Forderung in der Software noch offen ist.
 
 ### 9.8 Status eines Lastschriftlaufs
 
@@ -593,12 +708,55 @@ deshalb erneut ein, weil eine Forderung in der Software noch offen ist.
 | Entwurf / `draft` | Der Lauf ist noch nicht exportfähig vorbereitet. |
 | Vorbereitet / `prepared` | Positionen sind zusammengestellt; Fehler und Daten müssen geprüft werden. |
 | Exportiert / `exported` | Eine geprüfte Exportdatei wurde erzeugt. Das bestätigt keine Bankverarbeitung. |
+| Bei Bank eingereicht / `submitted` | Die externe Einreichung wurde in der Software dokumentiert. |
+| Von Bank angenommen / `accepted` | Die Positionen wurden entsprechend den erfassten Rückmeldungen angenommen. Das ist noch kein Nachweis des Zahlungseingangs. |
+| Teilweise angenommen / `partially_accepted` | Die Positionen haben unterschiedliche Rückmeldungsstände. Prüfe die einzelnen Positionen. |
+| Von Bank abgelehnt / `rejected` | Die Rückmeldungen kennzeichnen den Lauf als abgelehnt. Prüfe die Gründe der Positionen. |
 | Storniert / `cancelled` | Der Lauf wurde über den Stornierungsvorgang beendet. Seine stornierten Positionen bleiben als Historie erhalten. |
 
 Ein bereits exportierter Lauf kann über den normalen Vorbereitungs-
 Stornierungsvorgang nicht rückgängig gemacht werden. Eine notwendige
 Korrektur muss fachlich geklärt werden, insbesondere wenn die Datei bereits
 außerhalb der Software verwendet wurde.
+
+### 9.9 Einreichung und Bankrückmeldungen dokumentieren
+
+Nachdem du die XML tatsächlich über den vereinbarten Weg bei der Bank
+eingereicht hast:
+
+1. Öffne den exportierten Lauf und wähle **Als eingereicht markieren**.
+2. Wähle den **Einreichungsweg** und trage **Eingereicht am** ein.
+3. Ergänze gegebenenfalls die **Bank-/Upload-Referenz** und bestätige.
+
+Die Auswahl eines Einreichungswegs dokumentiert die bereits erfolgte
+Einreichung; sie startet keine Übertragung an die Bank.
+
+Mit entsprechender Berechtigung kannst du anschließend unter **Positionen**
+Bankrückmeldungen erfassen:
+
+| Aktion | Verwendung |
+| --- | --- |
+| Von Bank angenommen | Für eine eingereichte Position; Zeitpunkt und gegebenenfalls Bankreferenz erfassen. |
+| Von Bank abgelehnt | Für eine eingereichte oder angenommene Position; Zeitpunkt, Grund und gegebenenfalls Bank-Fehlercode und Referenz erfassen. |
+| Rücklastschrift erfassen | Für eine bereits ausgeführte Position; Rücklastschriftdatum, Grund und gegebenenfalls Bankcode und Referenz erfassen. |
+
+Die angebotenen Aktionen hängen vom Positionsstatus ab. Annahme und
+Ablehnung aktualisieren den zusammengefassten Laufstatus. Erfasse eine
+Rückmeldung nur auf Grundlage der tatsächlichen Bankinformation.
+
+### 9.10 Ausgeführte Lastschriften und Rücklastschriften
+
+Wird eine SEPA-Position als **Ausgeführt** verbucht, legt die Anwendung eine
+Zahlung an und ordnet sie der zugehörigen Forderung zu. Eine erneut
+verarbeitete Ausführungsinformation darf keine zweite Zahlung erzeugen.
+Die Erfassung der Ausführung selbst hat derzeit keine eigene Schaltfläche
+in der Positionsliste; kläre diesen Schritt mit der technischen Betreuung.
+
+Bei einer erfassten Rücklastschrift wird die zugehörige Zahlung
+zurückgebucht. Ihre bisherigen Zuordnungen zählen dann nicht mehr als
+Zahlungsausgleich, sodass der entsprechende Forderungsbetrag wieder offen
+ist. Die Historie bleibt erhalten. Prüfe danach den Restbetrag und kläre
+mit dem Mitglied die weitere Zahlungsweise.
 
 ## 10. Mit Testdaten üben
 
@@ -661,7 +819,7 @@ echten Bank ein.**
 
 ### 11.1 Benutzer einladen
 
-1. Öffne **Administration → Benutzer**.
+1. Öffne **Einstellungen → Benutzer & Rollen**.
 2. Wähle die Aktion zum Einladen eines Benutzers.
 3. Gib die E-Mail-Adresse ein und wähle die vorgesehene Rolle.
 4. Bestätige die Einladung.
@@ -697,7 +855,7 @@ Exportberechtigung ableiten.
 
 ### 11.4 Einladungen nachverfolgen
 
-Öffne **Administration → Einladungen**. Die Übersicht unterscheidet offene,
+Öffne **Einstellungen → Einladungen**. Die Übersicht unterscheidet offene,
 akzeptierte, widerrufene und abgelaufene Einladungen.
 
 | Aktion | Wirkung |
@@ -743,7 +901,7 @@ Zugriff mehr hast, wende dich an die technische Betreuung.
 
 ### 12.4 Sitzungen und Geräte prüfen
 
-1. Öffne **Konto → Sicherheit**.
+1. Öffne **Sicherheit** im Benutzermenü.
 2. Prüfe die **Aktiven Sitzungen** mit Browser- beziehungsweise Geräteangabe,
    IP-Adresse und letzter Aktivität.
 3. Die aktuelle Sitzung ist als **Aktuelles Gerät** markiert.
@@ -759,7 +917,8 @@ Benutzermenü.
 
 Die Software protokolliert wichtige Mitglieds-, Beitrags-, Benutzer- und
 Sicherheitsvorgänge. Dazu gehören beispielsweise Änderungen am Mitglied,
-Dokumentdownloads, Benutzerzuordnungen und SEPA-Exporte.
+Dokumentdownloads, Benutzerzuordnungen, Zahlungsanlagen, Zahlungszuordnungen,
+Rückbuchungen und SEPA-Exporte.
 
 Ein erfolgreicher SEPA-Export erzeugt einen Audit-Eintrag. Jeder erfolgreich
 geprüfte XML-Download erzeugt einen eigenen Eintrag. Für diese beiden
@@ -782,7 +941,10 @@ Datensatz, Aktion und ungefähren Zeitpunkt.
 | Mitgliedsnummer bereits vergeben | Nutze innerhalb des Vereins eine andere Mitgliedsnummer oder suche nach dem vorhandenen Datensatz. |
 | Kein gültiger Beitragssatz | Prüfe Beitragsart, Mitgliedsart, Berechnungsdatum, Aktiv-Schalter und Gültigkeitszeitraum der Sätze. |
 | Beitragsregel überschneidet sich | Prüfe andere aktive individuelle Regeln desselben Mitglieds und derselben Beitragsart. |
-| Für diesen Verein ist keine aktive SEPA-Konfiguration vorhanden | Öffne Einstellungen → SEPA und prüfe Konfiguration und Aktiv-Schalter. |
+| Für diesen Verein ist keine aktive SEPA-Konfiguration vorhanden | Öffne Einstellungen → SEPA-Einstellungen und prüfe Konfiguration und Aktiv-Schalter. |
+| Die Zuordnung ist größer als der noch verfügbare Zahlungsbetrag | Prüfe, ob bereits ein Teil oder die gesamte Zahlung zugeordnet wurde. Lade die Daten neu und verwende höchstens den verbleibenden Betrag. |
+| Die Zuordnung ist größer als der offene Forderungsbetrag | Wähle höchstens den noch offenen Restbetrag der Forderung. |
+| Forderung als bezahlt markiert, aber weiterhin offener Betrag in der Finanzübersicht | Die manuelle Statusänderung erzeugt keine Zahlungszuordnung. Prüfe die tatsächlichen Zahlungen und ihre Zuordnungen. |
 | Einzugsdatum liegt vor dem Mindestvorlauf | Wähle einen späteren Einzugstermin. |
 | Kein aktives SEPA-Mandat | Erfasse ein gültiges Mandat, sofern es tatsächlich vorliegt. Kläre andernfalls die Zahlungsweise und den fehlerhaften Lauf. |
 | Der SEPA-Lauf enthält keine Positionen | Prüfe offene positive Forderungen, ihre Fälligkeit und eine mögliche Verwendung in einem anderen vorbereiteten Lauf. |
@@ -811,9 +973,19 @@ zusätzlichen Schaltflächen voraus:
   den beschriebenen Detailseiten angeboten.
 - Ein Lastschriftlauf bietet keine manuelle Auswahl einzelner Forderungen
   im Vorbereitungsdialog.
-- Die XML wird als Datei bereitgestellt; Bankübermittlung, Bankantworten und
-  automatische Zahlungseingangsverarbeitung gehören nicht zu diesem
-  Oberflächenablauf.
+- Die XML wird als Datei bereitgestellt; Bankübermittlung und die
+  automatische Übernahme von Bankrückmeldungsdateien sind nicht in diesem
+  Oberflächenablauf enthalten. Einreichung und ausgewählte Rückmeldungen
+  lassen sich manuell dokumentieren.
+- Die Zahlungsresource besitzt noch kein ausgefülltes Erfassungsformular
+  und keine Tabellenspalten. Die vorbereitete Tabelle nicht zugeordneter
+  Zahlungen ist noch nicht in die Finanzübersicht eingebunden. Nutze die
+  vorhandene Zuordnung bei den Zahlungen des Mitglieds.
+- Die Finanzübersicht verarbeitet derzeit höchstens 500 Forderungen und
+  500 Zahlungen. Die offene Forderungsliste enthält höchstens 50 Einträge;
+  die Kennzahl nicht zugeordneter Zahlungen berücksichtigt höchstens
+  50 Zahlungen mit Restbetrag. Bei größeren Beständen sind die Kennzahlen
+  deshalb kein vollständiger Kontoabschluss.
 - Die allgemeine Audit-Auswertung erfordert derzeit Unterstützung durch die
   berechtigte Administration oder technische Betreuung.
 - Nicht jeder vorhandene Berechtigungsname bedeutet, dass eine entsprechende
@@ -850,6 +1022,16 @@ zusätzlichen Schaltflächen voraus:
 - Testdateien eindeutig von echten Zahlungsdateien getrennt.
 - Eventuelle externe Einreichung nach dem vorgesehenen Verfahren dokumentiert.
 - Tatsächliche Zahlungseingänge anschließend abgeglichen.
+
+### Finanzkontrolle und Zahlungszuordnung
+
+- Richtigen Verein ausgewählt und Finanzübersicht geöffnet.
+- Offene und überfällige Restbeträge geprüft; Teilmengen nicht doppelt addiert.
+- Forderungsliste bei Bedarf nach Status, Mitglied, Beitragsart und Zeitraum gefiltert.
+- Tatsächlichen Zahlungseingang vor der Zuordnung abgeglichen.
+- Nur Zahlungen und Forderungen desselben Mitglieds zugeordnet.
+- Restbeträge nach der Zuordnung und einer eventuellen Rücklastschrift geprüft.
+- Bei größeren Beständen die Mengenbegrenzungen der Finanzübersicht berücksichtigt.
 
 ### Benutzerzugang
 

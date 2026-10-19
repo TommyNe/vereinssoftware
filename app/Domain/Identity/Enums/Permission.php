@@ -42,4 +42,13 @@ enum Permission: string
     case SepaDebitRunsCreate = 'sepa-debit-runs.create';
     case SepaDebitRunsExport = 'sepa-debit-runs.export';
     case SepaDebitRunsCancel = 'sepa-debit-runs.cancel';
+    case SepaDebitRunsSubmit = 'sepa-debit-runs.submit';
+    case SepaDebitItemsFeedbackManage = 'sepa-debit-items.feedback.manage';
+    case PaymentsView = 'payments.view';
+    case PaymentsManage = 'payments.manage';
+    case PaymentsReverse = 'payments.reverse';
+    case FinanceOverviewView = 'finance-overview.view';
+    case FinanceChargesView = 'finance-charges.view';
+    case FinancePaymentsView = 'finance-payments.view';
+
 }

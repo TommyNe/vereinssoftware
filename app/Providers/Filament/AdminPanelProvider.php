@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Domain\Club\Models\Club;
 use App\Filament\Pages\Auth\Register;
+use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\Tenancy\RegisterClub;
 use App\Http\Middleware\AcceptPendingClubInvitation;
 use App\Http\Middleware\SetCurrentClub;
@@ -14,7 +15,7 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\MenuItem;
-use Filament\Pages\Dashboard;
+use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -59,7 +60,27 @@ class AdminPanelProvider extends PanelProvider
                             ['tenant' => $tenant],
                         );
                     }),
+                'security' => MenuItem::make()
+                    ->label('Sicherheit')
+                    ->icon('heroicon-o-shield-check')
+                    ->url(function (): ?string {
+                        $tenant = Filament::getTenant();
+
+                        if (! $tenant instanceof Club) {
+                            return null;
+                        }
+
+                        return route('filament.admin.pages.security', ['tenant' => $tenant]);
+                    })
+                    ->visible(fn (): bool => Filament::getTenant() instanceof Club),
             ])
+            ->navigationGroups([
+                NavigationGroup::make('Finanzen'),
+                NavigationGroup::make('Vereinsstruktur')->collapsed(),
+                NavigationGroup::make('Einstellungen')->collapsed(),
+                NavigationGroup::make('Hilfe'),
+            ])
+            ->sidebarCollapsibleOnDesktop()
             ->strictAuthorization()
             ->tenant(Club::class)
             ->tenantRegistration(

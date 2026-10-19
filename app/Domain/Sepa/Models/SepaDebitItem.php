@@ -8,6 +8,7 @@ use App\Domain\Sepa\Enums\SepaDebitItemStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 final class SepaDebitItem extends Model
 {
@@ -27,6 +28,7 @@ final class SepaDebitItem extends Model
         'bic',
         'mandate_reference',
         'mandate_signed_at',
+        'end_to_end_id',
     ];
 
     protected function casts(): array
@@ -44,6 +46,7 @@ final class SepaDebitItem extends Model
         ];
     }
 
+    /** @return BelongsTo<SepaDebitRun, $this> */
     public function run(): BelongsTo
     {
         return $this->belongsTo(
@@ -78,6 +81,14 @@ final class SepaDebitItem extends Model
         return $this->belongsTo(
             SepaMandate::class,
             'sepa_mandate_id'
+        );
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(
+            SepaDebitItemEvent::class,
+            'sepa_debit_item_id'
         );
     }
 }

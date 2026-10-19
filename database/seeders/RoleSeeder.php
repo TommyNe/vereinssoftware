@@ -16,20 +16,23 @@ final class RoleSeeder extends Seeder
             PermissionRegistrar::class
         )->forgetCachedPermissions();
 
-        $administrator = Role::query()
+        Role::query()
             ->firstOrCreate([
                 'name' => RoleEnum::Administrator->value,
                 'guard_name' => 'web',
                 'club_id' => null,
             ]);
 
-        $administrator->syncPermissions(
-            array_map(
-                static fn (
-                    Permission $permission
-                ): string => $permission->value,
-                Permission::cases(),
-            )
+        $permissions = array_map(
+            static fn (Permission $permission): string => $permission->value,
+            Permission::cases(),
         );
+
+        Role::query()
+            ->where('name', RoleEnum::Administrator->value)
+            ->where('guard_name', 'web')
+            ->each(static function (Role $administrator) use ($permissions): void {
+                $administrator->syncPermissions($permissions);
+            });
     }
 }

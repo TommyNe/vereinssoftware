@@ -34,10 +34,10 @@ final class ClubUserResource extends Resource
         'Benutzer';
 
     protected static ?string $navigationLabel =
-        'Benutzer';
+        'Benutzer & Rollen';
 
     protected static string|UnitEnum|null $navigationGroup =
-        'Administration';
+        'Einstellungen';
 
     protected static string|BackedEnum|null $navigationIcon =
         'heroicon-o-users';

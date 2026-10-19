@@ -223,4 +223,30 @@ final readonly class MemberPolicy
             Permission::SepaBankDataView->value
         );
     }
+
+    public function viewPayments(
+        User $user,
+        Member $member,
+    ): bool {
+        return
+            $this->belongsToCurrentClub(
+                $member
+            )
+            && $user->can(
+                Permission::PaymentsView->value
+            );
+    }
+
+    public function managePayments(
+        User $user,
+        Member $member,
+    ): bool {
+        return
+            $this->belongsToCurrentClub(
+                $member
+            )
+            && $user->can(
+                Permission::PaymentsManage->value
+            );
+    }
 }

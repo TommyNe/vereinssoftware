@@ -3,7 +3,7 @@
 use App\Application\Club\CurrentClub;
 use App\Application\Sepa\ExportSepaDebitRun;
 use App\Application\Sepa\PrepareSepaDebitRun;
-use App\Application\Sepa\Xml\Pain008XmlBuilder;
+use App\Application\Sepa\SubmitSepaDebitRun;
 use App\Application\Sepa\Xml\ValidatePain008Xml;
 use App\Domain\Audit\Enums\AuditAction;
 use App\Domain\Club\Models\Club;
@@ -15,13 +15,16 @@ use App\Domain\Membership\Models\Member;
 use App\Domain\Sepa\Enums\SepaDebitItemStatus;
 use App\Domain\Sepa\Enums\SepaDebitRunStatus;
 use App\Domain\Sepa\Enums\SepaMandateStatus;
+use App\Domain\Sepa\Enums\SepaSubmissionMethod;
 use App\Domain\Sepa\Models\ClubSepaConfiguration;
+use App\Domain\Sepa\Models\SepaDebitItemEvent;
 use App\Domain\Sepa\Models\SepaDebitRun;
 use App\Domain\Sepa\Models\SepaMandate;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission as SpatiePermission;
 
@@ -87,6 +90,13 @@ function sepaXmlExportFixture(int $membersCount = 1, bool $canExport = true): ar
     return compact('club', 'user', 'configuration', 'run');
 }
 
+function exportedSepaTestXml(SepaDebitRun $run): string
+{
+    $exportedRun = app(ExportSepaDebitRun::class)->handle($run);
+
+    return Crypt::decryptString(Storage::disk('local')->get($exportedRun->xml_storage_path));
+}
+
 function sepaXmlExportDocument(string $xml): DOMDocument
 {
     $document = new DOMDocument;
@@ -148,6 +158,160 @@ it('rejects an empty prepared run without exporting anything', function (): void
     assertSepaXmlExportRejected($run, 'Der SEPA-Lauf enthält keine Positionen.');
 });
 
+it('submits only prepared items belonging to the submitted run', function (): void {
+    ['run' => $preparedRun, 'user' => $user] = sepaXmlExportFixture(membersCount: 4);
+    $run = app(ExportSepaDebitRun::class)->handle($preparedRun);
+    $items = $run->items()->orderBy('id')->get();
+    $preparedItem = $items->get(0);
+    $cancelledItem = $items->get(1);
+    $otherItem = $items->get(2);
+    $secondPreparedItem = $items->get(3);
+    $cancelledItem->update(['status' => SepaDebitItemStatus::Cancelled]);
+    $otherRun = SepaDebitRun::query()->create([
+        'club_id' => $run->club_id,
+        'name' => 'Weiterer Lastschriftlauf',
+        'collection_date' => '2026-10-15',
+        'status' => SepaDebitRunStatus::Prepared,
+    ]);
+    $otherItem->update(['sepa_debit_run_id' => $otherRun->getKey()]);
+    $cancelledAttributes = $cancelledItem->fresh()->getRawOriginal();
+    $otherAttributes = $otherItem->fresh()->getRawOriginal();
+
+    $submission = app(SubmitSepaDebitRun::class)->handle(
+        $run, SepaSubmissionMethod::BankPortal, CarbonImmutable::now(), 'BANK-123', $user,
+    );
+
+    $this->assertDatabaseHas('sepa_debit_runs', [
+        'id' => $run->getKey(),
+        'status' => SepaDebitRunStatus::Submitted->value,
+    ]);
+    $this->assertDatabaseHas('sepa_debit_submissions', [
+        'id' => $submission->getKey(),
+        'sepa_debit_run_id' => $run->getKey(),
+        'status' => 'submitted',
+    ]);
+    foreach ([$preparedItem, $secondPreparedItem] as $item) {
+        $this->assertDatabaseHas('sepa_debit_items', [
+            'id' => $item->getKey(),
+            'status' => SepaDebitItemStatus::Submitted->value,
+        ]);
+        $this->assertDatabaseHas('sepa_debit_item_events', [
+            'club_id' => $run->club_id,
+            'sepa_debit_item_id' => $item->getKey(),
+            'type' => 'submitted',
+            'occurred_at' => '2026-10-06 12:00:00',
+            'bank_reference' => 'BANK-123',
+            'source' => 'manual',
+            'recorded_by' => $user->getKey(),
+        ]);
+    }
+    $this->assertDatabaseCount('sepa_debit_item_events', 2);
+    expect($cancelledItem->fresh()->getRawOriginal())->toBe($cancelledAttributes);
+    expect($otherItem->fresh()->getRawOriginal())->toBe($otherAttributes);
+    expect($otherRun->fresh()->status)->toBe(SepaDebitRunStatus::Prepared);
+});
+
+it('leaves item statuses unchanged when a duplicate submission is rejected', function (): void {
+    ['run' => $preparedRun, 'user' => $user] = sepaXmlExportFixture();
+    $run = app(ExportSepaDebitRun::class)->handle($preparedRun);
+    app(SubmitSepaDebitRun::class)->handle(
+        $run, SepaSubmissionMethod::BankPortal, CarbonImmutable::now(), null, $user,
+    );
+    $runAttributes = $run->fresh()->getRawOriginal();
+    $itemAttributes = $run->items()->sole()->getRawOriginal();
+
+    expect(fn () => app(SubmitSepaDebitRun::class)->handle(
+        $run, SepaSubmissionMethod::BankPortal, CarbonImmutable::now(), null, $user,
+    ))->toThrow(DomainException::class, 'Der Lastschriftlauf wurde bereits als eingereicht erfasst.');
+
+    expect($run->fresh()->getRawOriginal())->toBe($runAttributes);
+    expect($run->items()->sole()->getRawOriginal())->toBe($itemAttributes);
+    $this->assertDatabaseCount('sepa_debit_submissions', 1);
+    $this->assertDatabaseCount('sepa_debit_item_events', 1);
+    $this->assertDatabaseHas('sepa_debit_item_events', [
+        'sepa_debit_item_id' => $run->items()->sole()->getKey(),
+        'bank_reference' => null,
+    ]);
+});
+
+it('rolls back the submission and item changes when recording an event fails', function (): void {
+    ['run' => $preparedRun, 'user' => $user] = sepaXmlExportFixture(membersCount: 2);
+    $run = app(ExportSepaDebitRun::class)->handle($preparedRun);
+    $runAttributes = $run->getRawOriginal();
+    $itemAttributes = $run->items()->orderBy('id')->get()->map->getRawOriginal()->all();
+    $eventName = 'eloquent.creating: '.SepaDebitItemEvent::class;
+    $eventsCount = 0;
+    Event::listen($eventName, function () use (&$eventsCount): void {
+        $eventsCount++;
+        if ($eventsCount === 2) {
+            throw new RuntimeException('Event konnte nicht gespeichert werden.');
+        }
+    });
+
+    try {
+        expect(fn () => app(SubmitSepaDebitRun::class)->handle(
+            $run, SepaSubmissionMethod::BankPortal, CarbonImmutable::now(), null, $user,
+        ))->toThrow(RuntimeException::class, 'Event konnte nicht gespeichert werden.');
+    } finally {
+        Event::forget($eventName);
+    }
+
+    expect($run->fresh()->getRawOriginal())->toBe($runAttributes);
+    expect($run->items()->orderBy('id')->get()->map->getRawOriginal()->all())->toBe($itemAttributes);
+    $this->assertDatabaseCount('sepa_debit_submissions', 0);
+    $this->assertDatabaseCount('sepa_debit_item_events', 0);
+});
+
+it('persists missing identifiers on the first export', function (): void {
+    ['run' => $preparedRun] = sepaXmlExportFixture(membersCount: 2);
+
+    $run = app(ExportSepaDebitRun::class)->handle($preparedRun);
+
+    expect($run->message_id)->toBeString()->not->toBeEmpty();
+    expect($run->payment_information_id)->toBeString()->not->toBeEmpty();
+    $this->assertDatabaseHas('sepa_debit_runs', [
+        'id' => $run->getKey(),
+        'message_id' => $run->message_id,
+        'payment_information_id' => $run->payment_information_id,
+    ]);
+    $identifiers = $run->items()->pluck('end_to_end_id')->all();
+    foreach ($identifiers as $identifier) {
+        expect($identifier)->toBeString()->not->toBeEmpty();
+    }
+    expect(array_unique($identifiers))->toHaveCount(2);
+});
+
+it('preserves existing identifiers and fills only missing identifiers on export', function (?string $messageId, ?string $paymentInformationId): void {
+    ['run' => $preparedRun] = sepaXmlExportFixture(membersCount: 2);
+    $preparedRun->update([
+        'message_id' => $messageId,
+        'payment_information_id' => $paymentInformationId,
+    ]);
+    $items = $preparedRun->items()->orderBy('id')->get();
+    $existingItem = $items->first();
+    $missingItem = $items->last();
+    $existingItem->update(['end_to_end_id' => 'EXISTING-E2E']);
+
+    $run = app(ExportSepaDebitRun::class)->handle($preparedRun);
+
+    $this->assertDatabaseHas('sepa_debit_runs', [
+        'id' => $run->getKey(),
+        'message_id' => $messageId ?? $run->message_id,
+        'payment_information_id' => $paymentInformationId ?? $run->payment_information_id,
+    ]);
+    expect($run->message_id)->toBeString()->not->toBeEmpty();
+    expect($run->payment_information_id)->toBeString()->not->toBeEmpty();
+    $this->assertDatabaseHas('sepa_debit_items', [
+        'id' => $existingItem->getKey(),
+        'end_to_end_id' => 'EXISTING-E2E',
+    ]);
+    expect($missingItem->fresh()->end_to_end_id)->toBeString()->not->toBeEmpty();
+})->with([
+    'both run identifiers exist' => ['EXISTING-MSG', 'EXISTING-PMT'],
+    'only message identifier exists' => ['EXISTING-MSG', null],
+    'only payment information identifier exists' => [null, 'EXISTING-PMT'],
+]);
+
 it('rejects a run with unresolved preparation errors', function (): void {
     ['run' => $run] = sepaXmlExportFixture();
     $item = $run->items()->sole();
@@ -166,12 +330,14 @@ it('preserves the existing encrypted file and export metadata when exported agai
     $run = app(ExportSepaDebitRun::class)->handle($preparedRun);
     $storedFile = Storage::disk('local')->get($run->xml_storage_path);
     $runAttributes = $run->getRawOriginal();
+    $itemAttributes = $run->items()->orderBy('id')->get()->map->getRawOriginal()->all();
     $configuration->update(['account_holder' => 'Geänderter Vereinsname']);
     $this->travel(1)->days();
 
     $repeatedRun = app(ExportSepaDebitRun::class)->handle($preparedRun);
 
     expect($repeatedRun->getRawOriginal())->toBe($runAttributes);
+    expect($repeatedRun->items()->orderBy('id')->get()->map->getRawOriginal()->all())->toBe($itemAttributes);
     expect(Storage::disk('local')->get($run->xml_storage_path))->toBe($storedFile);
     expect(Storage::disk('local')->allFiles())->toBe([$run->xml_storage_path]);
 });
@@ -254,15 +420,17 @@ it('rejects schema-invalid generated XML before storing an export', function ():
 });
 
 it('contains two distinct debit transactions with exact amounts and SEPA payment instructions', function (): void {
-    ['run' => $run, 'configuration' => $configuration] = sepaXmlExportFixture(membersCount: 2);
+    ['run' => $run] = sepaXmlExportFixture(membersCount: 2);
 
-    $xml = app(Pain008XmlBuilder::class)->build($run, $configuration);
+    $xml = exportedSepaTestXml($run);
 
     $document = sepaXmlExportDocument($xml);
     $namespace = 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.08';
     expect($document->getElementsByTagNameNS($namespace, 'DrctDbtTxInf'))->toHaveCount(2);
     $xpath = new DOMXPath($document);
     $xpath->registerNamespace('sepa', $namespace);
+    expect($xpath->evaluate('string(//sepa:GrpHdr/sepa:MsgId)'))->toBe($run->fresh()->message_id);
+    expect($xpath->evaluate('string(//sepa:PmtInf/sepa:PmtInfId)'))->toBe($run->fresh()->payment_information_id);
     expect($xpath->evaluate('string(//sepa:GrpHdr/sepa:NbOfTxs)'))->toBe('2');
     expect($xpath->evaluate('string(//sepa:GrpHdr/sepa:CtrlSum)'))->toBe('40.30');
     expect($xpath->evaluate('string(//sepa:PmtInf/sepa:NbOfTxs)'))->toBe('2');
@@ -289,6 +457,7 @@ it('contains two distinct debit transactions with exact amounts and SEPA payment
     expect($amounts)->toEqualCanonicalizing(['25.10', '15.20']);
     expect($references)->toEqualCanonicalizing(['SV-0001', 'SV-0002']);
     expect(array_unique($identifiers))->toHaveCount(2);
+    expect($identifiers)->toEqualCanonicalizing($run->items()->pluck('end_to_end_id')->all());
 });
 
 it('escapes special characters in creditor and debtor names and payment purposes', function (): void {
@@ -297,9 +466,10 @@ it('escapes special characters in creditor and debtor names and payment purposes
     $debtor = 'Jörg & René <Müller>';
     $purpose = 'Beitrag für <Sport> & Spaß';
     $configuration->update(['account_holder' => $creditor]);
+    app(CurrentClub::class)->get()->unsetRelation('sepaConfiguration');
     $run->items()->sole()->update(['account_holder' => $debtor, 'purpose' => $purpose]);
 
-    $xml = app(Pain008XmlBuilder::class)->build($run, $configuration);
+    $xml = exportedSepaTestXml($run);
 
     $document = sepaXmlExportDocument($xml);
     $xpath = new DOMXPath($document);
@@ -329,9 +499,9 @@ it('stores only encrypted XML and verifies the checksum against its decrypted co
 });
 
 it('validates generated XML against the bundled EPC schema', function (int $membersCount): void {
-    ['run' => $run, 'configuration' => $configuration] = sepaXmlExportFixture($membersCount);
+    ['run' => $run] = sepaXmlExportFixture($membersCount);
 
-    $xml = app(Pain008XmlBuilder::class)->build($run, $configuration);
+    $xml = exportedSepaTestXml($run);
     app(ValidatePain008Xml::class)->validate($xml);
 
     $document = sepaXmlExportDocument($xml);
@@ -339,8 +509,8 @@ it('validates generated XML against the bundled EPC schema', function (int $memb
 })->with([1, 2]);
 
 it('rejects syntactically valid XML that violates the EPC schema', function (): void {
-    ['run' => $run, 'configuration' => $configuration] = sepaXmlExportFixture();
-    $document = sepaXmlExportDocument(app(Pain008XmlBuilder::class)->build($run, $configuration));
+    ['run' => $run] = sepaXmlExportFixture();
+    $document = sepaXmlExportDocument(exportedSepaTestXml($run));
     $paymentMethod = $document->getElementsByTagNameNS('urn:iso:std:iso:20022:tech:xsd:pain.008.001.08', 'PmtMtd')->item(0);
     $paymentMethod->parentNode->removeChild($paymentMethod);
     $invalidXml = $document->saveXML();

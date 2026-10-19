@@ -113,7 +113,7 @@ final class Pain008XmlBuilder
         $this->element(
             $header,
             'MsgId',
-            $this->messageId($run),
+            (string) $run->message_id,
         );
 
         $this->element(
@@ -146,13 +146,6 @@ final class Pain008XmlBuilder
         );
     }
 
-    private function messageId(
-        SepaDebitRun $run,
-    ): string {
-        return 'SDD'
-            .str_replace('-', '', (string) $run->getKey());
-    }
-
     /**
      * @param  Collection<int,SepaDebitItem>  $items
      */
@@ -170,7 +163,7 @@ final class Pain008XmlBuilder
         $this->element(
             $payment,
             'PmtInfId',
-            'PMT'.str_replace('-', '', (string) $run->getKey()),
+            (string) $run->payment_information_id,
         );
 
         $this->element($payment, 'PmtMtd', 'DD');
@@ -335,7 +328,7 @@ final class Pain008XmlBuilder
         $this->element(
             $paymentId,
             'EndToEndId',
-            'E2E'.str_replace('-', '', (string) $item->getKey()),
+            (string) $item->end_to_end_id,
         );
 
         $amount = $this->element(

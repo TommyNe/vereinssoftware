@@ -325,8 +325,8 @@ it('loads contribution relations through the member_id foreign key', function ()
     expect($member->contributionCharges)->toHaveCount(1);
 });
 
-test('example', function () {
+test('the home page redirects to the software login', function (): void {
     $response = $this->get('/');
 
-    $response->assertStatus(200);
+    $response->assertRedirectToRoute('filament.admin.auth.login');
 });
