@@ -11,14 +11,11 @@ enum ChargePaymentState: string
     public function label(): string
     {
         return match ($this) {
-            self::Open =>
-            'Offen',
+            self::Open => 'Offen',
 
-            self::PartiallyPaid =>
-            'Teilweise bezahlt',
+            self::PartiallyPaid => 'Teilweise bezahlt',
 
-            self::Paid =>
-            'Bezahlt',
+            self::Paid => 'Bezahlt',
         };
     }
 }

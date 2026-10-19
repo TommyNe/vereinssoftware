@@ -10,8 +10,7 @@ final readonly class SyncContributionChargePaymentStatus
 {
     public function __construct(
         private PaymentBalanceResolver $resolver,
-    ) {
-    }
+    ) {}
 
     public function handle(
         ContributionCharge $charge,
@@ -32,11 +31,9 @@ final readonly class SyncContributionChargePaymentStatus
             === ChargePaymentState::Paid
         ) {
             $charge->update([
-                'status' =>
-                    ContributionChargeStatus::Paid,
+                'status' => ContributionChargeStatus::Paid,
 
-                'paid_at' =>
-                    $charge->paid_at
+                'paid_at' => $charge->paid_at
                     ?? now(),
             ]);
 
@@ -51,11 +48,9 @@ final readonly class SyncContributionChargePaymentStatus
          * PaymentBalanceResolver berechnet.
          */
         $charge->update([
-            'status' =>
-                ContributionChargeStatus::Open,
+            'status' => ContributionChargeStatus::Open,
 
-            'paid_at' =>
-                null,
+            'paid_at' => null,
         ]);
     }
 }

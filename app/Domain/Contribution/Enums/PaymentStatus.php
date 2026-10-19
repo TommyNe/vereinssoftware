@@ -10,11 +10,9 @@ enum PaymentStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Booked =>
-            'Gebucht',
+            self::Booked => 'Gebucht',
 
-            self::Reversed =>
-            'Storniert / zurückgebucht',
+            self::Reversed => 'Storniert / zurückgebucht',
         };
     }
 }

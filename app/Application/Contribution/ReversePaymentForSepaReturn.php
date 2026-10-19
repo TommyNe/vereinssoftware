@@ -11,8 +11,7 @@ final readonly class ReversePaymentForSepaReturn
 {
     public function __construct(
         private PaymentManager $paymentManager,
-    ) {
-    }
+    ) {}
 
     public function handle(
         SepaDebitItem $item,
@@ -43,14 +42,11 @@ final readonly class ReversePaymentForSepaReturn
 
         $this->paymentManager
             ->reverse(
-                payment:
-                $payment,
+                payment: $payment,
 
-                reason:
-                $reason,
+                reason: $reason,
 
-                reversedBy:
-                $user,
+                reversedBy: $user,
             );
     }
 }

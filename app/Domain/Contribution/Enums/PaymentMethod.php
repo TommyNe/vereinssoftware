@@ -13,20 +13,15 @@ enum PaymentMethod: string
     public function label(): string
     {
         return match ($this) {
-            self::SepaDirectDebit =>
-            'SEPA-Lastschrift',
+            self::SepaDirectDebit => 'SEPA-Lastschrift',
 
-            self::BankTransfer =>
-            'Überweisung',
+            self::BankTransfer => 'Überweisung',
 
-            self::Cash =>
-            'Barzahlung',
+            self::Cash => 'Barzahlung',
 
-            self::Card =>
-            'Kartenzahlung',
+            self::Card => 'Kartenzahlung',
 
-            self::Other =>
-            'Sonstige',
+            self::Other => 'Sonstige',
         };
     }
 }

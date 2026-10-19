@@ -49,8 +49,7 @@ final class CreatePaymentAction
                                 static fn (
                                     PaymentMethod $method
                                 ): array => [
-                                    $method->value =>
-                                        $method->label(),
+                                    $method->value => $method->label(),
                                 ]
                             )
                             ->all()
@@ -105,37 +104,31 @@ final class CreatePaymentAction
                     );
 
                     $manager->create(
-                        member:
-                        $record,
+                        member: $record,
 
-                        amount:
-                        (string) $data['amount'],
+                        amount: (string) $data['amount'],
 
-                        method:
-                        PaymentMethod::from(
+                        method: PaymentMethod::from(
                             (string) $data['method']
                         ),
 
-                        bookingDate:
-                        CarbonImmutable::parse(
+                        bookingDate: CarbonImmutable::parse(
                             $data['booking_date']
                         ),
 
-                        valueDate:
-                        filled(
+                        valueDate: filled(
                             $data[
                             'value_date'
                             ] ?? null
                         )
                             ? CarbonImmutable::parse(
-                            $data[
-                            'value_date'
-                            ]
-                        )
+                                $data[
+                                'value_date'
+                                ]
+                            )
                             : null,
 
-                        reference:
-                        filled(
+                        reference: filled(
                             $data[
                             'reference'
                             ] ?? null
@@ -145,8 +138,7 @@ final class CreatePaymentAction
                         ]
                             : null,
 
-                        notes:
-                        filled(
+                        notes: filled(
                             $data['notes']
                             ?? null
                         )
@@ -155,8 +147,7 @@ final class CreatePaymentAction
                         ]
                             : null,
 
-                        createdBy:
-                        $user,
+                        createdBy: $user,
                     );
 
                     Notification::make()
