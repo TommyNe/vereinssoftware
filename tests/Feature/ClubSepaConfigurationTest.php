@@ -246,7 +246,10 @@ it('allows users with view permission to see the settings page', function (): vo
     $this->actingAs($fixture['user'])
         ->get(SepaSettings::getUrl(['tenant' => $fixture['club']], panel: 'admin'))
         ->assertOk()
-        ->assertSee('SEPA-Konfiguration');
+        ->assertSee('SEPA-Konfiguration')
+        ->assertSee('class="fi-sc-form"', false)
+        ->assertSee('wire:submit="save"', false)
+        ->assertSee('Speichern');
 });
 
 it('returns 403 for users without view permission', function (): void {

@@ -1,7 +1,7 @@
 <x-filament-panels::page>
     <form
         wire:submit="save"
-        class="space-y-6"
+        class="fi-sc-form"
     >
         {{ $this->form }}
 
